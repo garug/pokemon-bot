@@ -19,8 +19,8 @@ let lastPokemon = new Date();
 const types = {
   level1: 100,
   level2_3: 70,
-  level_unique: 60,
   level2_2: 55,
+  level_unique: 60,
   evo_stone: 55,
   level3_3: 50,
   mystic: 5,

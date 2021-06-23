@@ -4,6 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "start": "tsc && node ./dist/app.js",
+    "build": "tsc",
     "dev": "ts-node-dev --ignore-watch node_modules src/index.ts"
   },
   "author": "garug",
