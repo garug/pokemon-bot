@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "start": "node app.js",
+    "start": "node src/app.js",
     "build": "tsc",
     "dev": "ts-node-dev --ignore-watch node_modules src/index.ts"
   },
