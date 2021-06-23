@@ -3,7 +3,7 @@ import axios from "axios";
 
 const client = new Client();
 
-let newPokemon: TextChannel;
+let newPokemon;
 
 const maxInterval = 30 * 60 * 1000;
 
