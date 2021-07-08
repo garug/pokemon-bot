@@ -57,7 +57,7 @@ export default async function handleLastPokemon(m: Message) {
   const attributes = lastPokemon.pokemon.stats.reduce((acc: any, s: any) => {
     if (s.stat.name === "special-attack") {
       acc.sp_attack = s.base_stat;
-    } else if (s.stat.name === "specia l-defense") {
+    } else if (s.stat.name === "special-defense") {
       acc.sp_defense = s.base_stat;
     } else {
       acc[s.stat.name] = s.base_stat;
