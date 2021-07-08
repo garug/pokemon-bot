@@ -1,20 +1,17 @@
-import { Client, MessageEmbed, TextChannel } from "discord.js";
-import axios from "axios";
+import { Document, model, Schema } from "mongoose";
 
-const client = new Client();
+export interface Set extends Document {
+  id: String;
+  id_discord: String;
+}
 
-let newPokemon;
-
-const maxInterval = 30 * 60 * 1000;
-
-client.on("ready", async () => {
-  const channel = await client.channels.fetch("855838535503970344");
-  if (channel instanceof TextChannel) {
-    newPokemon = channel;
-  }
+const SetSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  active: { type: Boolean, required: true },
+  last_active: { type: Date, required: true },
+  created_at: { type: Date, required: true },
 });
-
-let lastPokemon = new Date();
 
 const types = {
   level1: 100,
@@ -785,61 +782,4 @@ const possiblePokemon = [
   },
 ];
 
-setInterval(async () => {
-  const now = new Date().getTime();
-  const probability = (now - lastPokemon.getTime()) / maxInterval;
-  const val = Math.random();
-  console.log(now - lastPokemon.getTime(), probability, val);
-  const test = probability > val;
-
-  let total = 0;
-
-  if (test) {
-    const probabilities = possiblePokemon.map((p) => {
-      total += p.chance;
-      return total;
-    });
-    const sortedNumber = Math.floor(Math.random() * (total - 1)) + 1;
-    const sortedPokemon =
-      possiblePokemon[probabilities.findIndex((n) => n > sortedNumber)];
-    lastPokemon = new Date();
-    const pokemon = await axios.get(sortedPokemon.url);
-    console.log(pokemon.data.sprites.other["official-artwork"].front_default);
-    const message = new MessageEmbed()
-      .setColor("#ff3f34")
-      .setTitle("A wild pokemon appeared")
-      // .setURL("https://discord.js.org/")
-      // .setAuthor(
-      //   "Some name",
-      //   "https://i.imgur.com/wSTFkRM.png",
-      //   "https://discord.js.org"
-      // )
-      .setDescription("Who's that pokemon?")
-      // .setThumbnail("https://i.imgur.com/wSTFkRM.png")
-      // .addFields(
-      //   { name: "Regular field title", value: "Some value here" },
-      //   { name: "\u200B", value: "\u200B" },
-      //   { name: "Inline field title", value: "Some value here", inline: true },
-      //   { name: "Inline field title", value: "Some value here", inline: true }
-      // )
-      // .addField("Inline field title", "Some value here", true)
-      .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
-    // .setTimestamp()
-    // .setFooter("Some footer text here", "https://i.imgur.com/wSTFkRM.png");
-
-    newPokemon.send(message);
-  }
-}, 30 * 1000);
-
-
-
-client.on("message", (message) => {
-  if (message.content === "ping") {
-    message.channel.send("pong");
-  } else if (message.content === "what is my avatar") {
-    // Send the user's avatar URL
-    message.reply(message.author.displayAvatarURL());
-  }
-});
-
-client.login("ODU1ODI1MjExODI2ODk2OTA2.YM4HVg.EnXoHzzHpRPmd__STNyE0X3jLKw");
+export default model<Set>("Set", SetSchema);
