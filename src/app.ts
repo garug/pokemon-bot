@@ -1,15 +1,19 @@
 import { Client, DMChannel, MessageEmbed, TextChannel, User } from "discord.js";
 import axios from "axios";
-import { v4 as uuid } from "uuid";
 
 import Database from "./MongoDatabase";
 import OwnedPokemon from "./OwnedPokemon";
 import SetPokemon from "./SetPokemon";
-import { randomFromInterval, randomPokemon } from "./lib/utils";
+import { generateNumber, randomFromInterval, randomPokemon } from "./lib/utils";
 import Battle from "./Battle";
 import Move from "./lib/moves";
-
-const client = new Client();
+import handleLastPokemon, {
+  lastPokemonRunAway,
+  updateLastPokemon,
+  useLastPokemon,
+} from "./messages/lastPokemon";
+import { useChannel, useClient } from "./discord";
+import handleDex from "./messages/dex";
 
 const maxInterval = 20 * 60 * 1000;
 
@@ -29,10 +33,6 @@ interface RoomBattle {
 
 let activeBattle: RoomBattle = {};
 
-function useChannel() {
-  return client.channels.cache.get("855838535503970344") as TextChannel;
-}
-
 async function verifyTeam(user: string) {
   const pokemon = await OwnedPokemon.find({ user });
   return pokemon.length >= 6;
@@ -49,8 +49,8 @@ async function sendMovesToPlayers() {
     const userString = activeBattle[user];
 
     if (userString) {
-      const userDiscord = (await client.users.cache
-        .get(activeBattle[user]?.id || "")
+      const userDiscord = (await useClient()
+        .users.cache.get(activeBattle[user]?.id || "")
         ?.fetch()) as User;
 
       const movesList = activeBattle.battle?.[
@@ -73,66 +73,9 @@ async function sendMovesToPlayers() {
 
 new Database().connect();
 
-let lastPokemon = {
-  date: new Date(),
-  pokemon: undefined as any,
-};
-
-function updateLastPokemon(pokemon?: any) {
-  lastPokemon = {
-    date: new Date(),
-    pokemon,
-  };
-}
-
-async function lastPokemonRunAway() {
-  if (!lastPokemon.pokemon) return false;
-
-  const message = new MessageEmbed()
-    .setColor("#f39c12")
-    .setDescription(`Oh no!! The ${lastPokemon.pokemon.name} run away!`);
-
-  useChannel().send(message);
-
-  updateLastPokemon();
-
-  return true;
-}
-
-const generateNumber = (number: number) => {
-  const chance = Math.random();
-  if (chance < 0.7) {
-    return number * randomFromInterval(0.8, 1.25);
-  } else if (chance < 0.9) {
-    return number * randomFromInterval(1.25, 1.4);
-  } else if (chance < 0.95) {
-    return number * randomFromInterval(1.4, 1.65);
-  } else if (chance < 0.98) {
-    return number * randomFromInterval(1.75, 2);
-  } else {
-    return number * 3;
-  }
-};
-
-const whatIsMyGrade = (number: number) => {
-  if (number < 1) {
-    return "E";
-  } else if (number < 1.15) {
-    return "D";
-  } else if (number < 1.3) {
-    return "C";
-  } else if (number < 1.45) {
-    return "B";
-  } else if (number < 1.6) {
-    return "A";
-  } else {
-    return "S";
-  }
-};
-
 setInterval(async () => {
   const now = new Date().getTime();
-  const timeDifference = now - lastPokemon.date.getTime();
+  const timeDifference = now - useLastPokemon().date.getTime();
   const probability = timeDifference / maxInterval;
   console.log(timeDifference, probability);
   const test = probability > Math.random();
@@ -196,67 +139,12 @@ setInterval(async () => {
   useChannel().send(message);
 }, chanceInterval);
 
-client.on("message", async (m) => {
+useClient().on("message", async (m) => {
   const message = m.content.toLowerCase();
-  if (message === lastPokemon.pokemon?.name.toLowerCase()) {
-    const name = lastPokemon.pokemon.name;
-    const number = lastPokemon.pokemon.id;
-
-    const attributes = lastPokemon.pokemon.stats.reduce((acc: any, s: any) => {
-      if (s.stat.name === "special-attack") {
-        acc.sp_attack = s.base_stat;
-      } else if (s.stat.name === "specia l-defense") {
-        acc.sp_defense = s.base_stat;
-      } else {
-        acc[s.stat.name] = s.base_stat;
-      }
-      return acc;
-    }, {});
-
-    attributes.reflex =
-      (attributes.attack + attributes.defense + attributes.speed) / 3;
-
-    let total = 0;
-    let totalCopy = 0;
-    const copy = {} as any;
-    Object.keys(attributes).forEach((a) => {
-      copy[a] = generateNumber(attributes[a]);
-      total += attributes[a];
-      totalCopy += copy[a];
-    });
-
-    const rank = totalCopy / total;
-
-    console.log(`ranks: ${totalCopy} / ${total}`);
-
-    const reply = new MessageEmbed()
-      .setColor("#f39c12")
-      .setDescription(
-        `${m.author.username} caught a ${name}! Class ${whatIsMyGrade(rank)}!`
-      );
-
-    updateLastPokemon();
-
-    await OwnedPokemon.create({
-      id: uuid(),
-      number,
-      name,
-      user: m.author.id,
-      original_user: m.author.id,
-      attributes: copy,
-      level: 0,
-    });
-
-    m.channel.send(reply);
+  if (message === useLastPokemon().pokemon?.name.toLowerCase()) {
+    handleLastPokemon(m);
   } else if (message === "dex") {
-    const ownedPokemon = await OwnedPokemon.find({ user: m.author.id });
-    const uniquePokemon = [...new Set(ownedPokemon.map((p) => p.name))];
-    const reply = new MessageEmbed().setColor("#f39c12").setDescription(
-      `${m.author.username} dex: ${uniquePokemon.length}/151
-        
-        [Full dex](https://vigilant-villani-fedc91.netlify.app/#/usuarios/${m.author.id})`
-    );
-    m.channel.send(reply);
+    handleDex(m);
   } else if (message.startsWith("!update")) {
     const uuid = message.slice("!update".length).trim();
     const pokemon = await OwnedPokemon.find();
@@ -392,5 +280,3 @@ client.on("message", async (m) => {
     }
   }
 });
-
-client.login(process.env.DISCORD_TOKEN);

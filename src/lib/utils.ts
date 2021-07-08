@@ -1,3 +1,4 @@
+import { Client } from "discord.js";
 import Pokemon from "../Pokemon";
 import { moves } from "./moves";
 
@@ -22,4 +23,19 @@ export function randomPokemon() {
     moves,
     types: ["normal"],
   });
+}
+
+export function generateNumber(number: number) {
+  const chance = Math.random();
+  if (chance < 0.7) {
+    return number * randomFromInterval(0.8, 1.25);
+  } else if (chance < 0.9) {
+    return number * randomFromInterval(1.25, 1.4);
+  } else if (chance < 0.95) {
+    return number * randomFromInterval(1.4, 1.65);
+  } else if (chance < 0.98) {
+    return number * randomFromInterval(1.75, 2);
+  } else {
+    return number * 3;
+  }
 }
