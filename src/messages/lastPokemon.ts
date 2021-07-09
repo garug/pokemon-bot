@@ -1,7 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
 import { v4 as uuid } from "uuid";
 import { useChannel } from "../discord";
-import { generateNumber, randomFromInterval } from "../lib/utils";
+import { generateNumber } from "../lib/utils";
 import OwnedPokemon from "../OwnedPokemon";
 
 let lastPokemon = {

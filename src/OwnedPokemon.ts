@@ -1,21 +1,21 @@
 import { Document, model, Schema } from "mongoose";
 
 export interface OwnedPokemon extends Document {
-  id: String;
-  name: String;
-  number: Number;
-  user: String;
-  original_user: String;
+  id: string;
+  name: string;
+  number: number;
+  user: string;
+  original_user: string;
   created_at: Date;
-  level: Number;
+  level: number;
   moves: [string, string, string, string];
   attributes: {
-    hp: Number;
-    attack: Number;
-    defense: Number;
-    sp_attack: Number;
-    sp_defense: Number;
-    speed: Number;
+    hp: number;
+    attack: number;
+    defense: number;
+    sp_attack: number;
+    sp_defense: number;
+    speed: number;
   };
 }
 

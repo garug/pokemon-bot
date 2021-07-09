@@ -1,4 +1,3 @@
-import { Client } from "discord.js";
 import Pokemon from "../Pokemon";
 import { moves } from "./moves";
 
@@ -8,18 +7,14 @@ export function randomFromInterval(min: number, max: number) {
   );
 }
 
-export function calculatePower(attack: number, defense: number) {
-  // TODO
-}
-
 export function randomPokemon() {
   return new Pokemon({
     name: `abc${randomFromInterval(1, 1000)}`,
     level: 1,
     attributes: {
-      hp: 1,
+      hp: 50,
       attack: 50,
-      defense: 1,
+      defense: 50,
       sp_attack: 50,
       sp_defense: 50,
       speed: 50,

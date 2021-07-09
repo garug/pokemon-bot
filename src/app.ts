@@ -1,4 +1,4 @@
-import { Client, DMChannel, MessageEmbed, TextChannel, User } from "discord.js";
+import { DMChannel, MessageEmbed, User } from "discord.js";
 import axios from "axios";
 
 import Database from "./MongoDatabase";
@@ -6,7 +6,7 @@ import OwnedPokemon from "./OwnedPokemon";
 import SetPokemon from "./SetPokemon";
 import { generateNumber, randomPokemon } from "./lib/utils";
 import Battle, { Player } from "./Battle";
-import Move from "./lib/moves";
+import Move, { moves } from "./lib/moves";
 import handleLastPokemon, {
   lastPokemonRunAway,
   updateLastPokemon,
@@ -14,6 +14,7 @@ import handleLastPokemon, {
 } from "./messages/lastPokemon";
 import { useChannel, useClient } from "./discord";
 import handleDex from "./messages/dex";
+import Pokemon from "./Pokemon";
 
 const maxInterval = 5 * 60 * 1000;
 
@@ -21,11 +22,11 @@ const chanceInterval = 1 * 60 * 1000;
 
 interface RoomBattle {
   p1?: {
-    id: string;
+    user: User;
     channel: DMChannel;
   };
   p2?: {
-    id: string;
+    user: User;
     channel: DMChannel;
   };
   battle?: Battle;
@@ -50,7 +51,7 @@ async function sendMovesToPlayers() {
 
     if (userString) {
       const userDiscord = (await useClient()
-        .users.cache.get(activeBattle[user]?.id || "")
+        .users.cache.get(activeBattle[user]?.user.id || "")
         ?.fetch()) as User;
 
       const movesList = activeBattle.battle?.[
@@ -61,6 +62,7 @@ async function sendMovesToPlayers() {
         .filter((e) => e.hp > 0)
         .map((e) => e.originalPokemon.name);
 
+      console.log(activeBattle.battle?.[user].pokemon);
       const moves = new MessageEmbed().setColor("#f39c12")
         .setDescription(`Choose your move: ${movesList}
         
@@ -154,7 +156,7 @@ useClient().on("message", async (m) => {
     handleDex(m);
   } else if (message.startsWith("!update")) {
     const uuid = message.slice("!update".length).trim();
-    const pokemon = await OwnedPokemon.find();
+    const pokemon = await OwnedPokemon.find({ "attributes.sp_defense": null });
 
     pokemon.forEach(async (p) => {
       const api = await axios.get(
@@ -162,12 +164,8 @@ useClient().on("message", async (m) => {
       );
 
       const attributes = api.data.stats.reduce((acc: any, s: any) => {
-        if (s.stat.name === "special-attack") {
-          acc.sp_attack = s.base_stat;
-        } else if (s.stat.name === "special-defense") {
+        if (s.stat.name === "special-defense") {
           acc.sp_defense = s.base_stat;
-        } else {
-          acc[s.stat.name] = s.base_stat;
         }
         return acc;
       }, {});
@@ -177,21 +175,16 @@ useClient().on("message", async (m) => {
         (a) => (copy[a] = generateNumber(attributes[a]))
       );
 
-      if (p) {
-        p.attributes = copy;
-        p.number = api.data.id;
-        p.level = 0;
-        p.original_user ||= p.user;
-        p.save().then((r) => console.log(r));
-      }
+      p.attributes.sp_defense = copy.sp_defense;
+      p.save().then((r) => console.log(r));
     });
-  } else if (message === "battle!") {
+  } else if (message === "battle!65as4d6a5sd4654") {
     if (!activeBattle.p1 && !activeBattle.p2) {
       const isVerified = await verifyTeam(m.author.id);
       let reply: MessageEmbed;
       if (isVerified) {
         activeBattle.p1 = {
-          id: m.author.id,
+          user: m.author,
           channel: m.channel as DMChannel,
         };
         reply = new MessageEmbed()
@@ -218,38 +211,76 @@ useClient().on("message", async (m) => {
         m.channel.send(reply);
       }
       activeBattle.p2 = {
-        id: m.author.id,
+        user: m.author,
         channel: m.channel as DMChannel,
       };
       if (!activeBattle.p1) console.error("error");
       else {
+        const [p1Pokemon, p2Pokemon] = await Promise.all([
+          OwnedPokemon.find({ user: activeBattle.p1.user.id }).limit(6),
+          OwnedPokemon.find({ user: activeBattle.p2.user.id }).limit(6),
+        ]);
+
+        const p1 = p1Pokemon.map((p) => {
+          return new Pokemon({
+            name: p.name,
+            level: 1,
+            attributes: p.attributes,
+            moves,
+            types: ["normal"],
+          });
+        }) as unknown as [Pokemon, Pokemon, Pokemon, Pokemon, Pokemon, Pokemon];
+        const p2 = p2Pokemon.map((p) => {
+          return new Pokemon({
+            name: p.name,
+            level: 1,
+            attributes: p.attributes,
+            moves,
+            types: ["normal"],
+          });
+        }) as unknown as [Pokemon, Pokemon, Pokemon, Pokemon, Pokemon, Pokemon];
+
         activeBattle.battle = new Battle(
           {
-            name: activeBattle.p1.id,
-            pokemon: [
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-            ],
+            name: activeBattle.p1.user.id,
+            pokemon: p1,
           },
           {
-            name: activeBattle.p2.id,
-            pokemon: [
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-              randomPokemon(),
-            ],
+            name: activeBattle.p2.user.id,
+            pokemon: p2,
           }
         );
 
         activeBattle.battle?.events.subscribe((event) => {
-          if (event.id === "resultTurn") {
+          if (event.id === "pokemonMove") {
+            const me = event.value.player as "p1" | "p2";
+            const adversary = event.value.player === "p1" ? "p2" : "p1";
+
+            const myMessage = new MessageEmbed().setDescription(
+              `You used ${event.value.move}!`
+            );
+
+            const messageToAdversary = new MessageEmbed().setDescription(
+              `Your enemy used ${event.value.move}!`
+            );
+
+            activeBattle[me]?.channel.send(myMessage);
+            activeBattle[adversary]?.channel.send(messageToAdversary);
+          } else if (event.id === "changePokemon") {
+            const me = event.value.player as "p1" | "p2";
+            const adversary = event.value.player === "p1" ? "p2" : "p1";
+
+            const myMessage = new MessageEmbed().setDescription(
+              `You call ${event.value.out} back... Go ${event.value.in}!`
+            );
+
+            const messageToAdversary = new MessageEmbed().setDescription(
+              `Your enemy call ${event.value.out} back and sent a ${event.value.in}!`
+            );
+
+            activeBattle[me]?.channel.send(myMessage);
+            activeBattle[adversary]?.channel.send(messageToAdversary);
+          } else if (event.id === "resultTurn") {
             const handleDefeat = (player: "p1" | "p2"): boolean => {
               const enemy = player === "p1" ? "p2" : "p1";
               const pokemonList =
@@ -270,10 +301,12 @@ useClient().on("message", async (m) => {
               } else {
                 activeBattle[player]?.channel.send(`You lose!`);
                 activeBattle[enemy]?.channel.send("You win!");
+                activeBattle = {};
                 return true;
               }
               return false;
             };
+
             if (event.value.defeats.p1) {
               if (handleDefeat("p1")) return;
             }
@@ -282,11 +315,28 @@ useClient().on("message", async (m) => {
               if (handleDefeat("p2")) return;
             }
 
+            const message = `${activeBattle.p1?.user} ${
+              activeBattle.battle?.p1.inBattle.originalPokemon.name
+            }: ${
+              ((activeBattle.battle?.p1.inBattle.hp || 1) /
+                (activeBattle.battle?.p1.inBattle.totalHp || 1)) *
+              100
+            }%
+            
+            ${activeBattle.p2?.user} ${
+              activeBattle.battle?.p2.inBattle.originalPokemon.name
+            }: ${
+              ((activeBattle.battle?.p2.inBattle.hp || 1) /
+                (activeBattle.battle?.p2.inBattle.totalHp || 1)) *
+              100
+            }%`;
+
             const reply = new MessageEmbed()
-              .setColor("#f39c12")
-              .setDescription(event);
+              .setDescription(message)
+              .setColor("#f39c12");
 
             notifyPlayers(reply);
+            sendMovesToPlayers();
           }
         });
 
@@ -294,24 +344,23 @@ useClient().on("message", async (m) => {
       }
     }
   } else if (
-    (m.author.id === activeBattle.p1?.id ||
-      m.author.id === activeBattle.p2?.id) &&
+    (m.author.id === activeBattle.p1?.user.id ||
+      m.author.id === activeBattle.p2?.user.id) &&
     message.startsWith("move")
   ) {
     if (activeBattle.battle) {
       const moveString = message.slice("move".length).trim();
-      const player = activeBattle.p1?.id === m.author.id ? "p1" : "p2";
+      const player = activeBattle.p1?.user.id === m.author.id ? "p1" : "p2";
       const otherPlayer = player === "p1" ? "p2" : "p1";
       const move = activeBattle.battle?.[
         player
       ].inBattle.originalPokemon.moves.find(
-        (move: Move) => (move.name = moveString)
+        (move: Move) => move.name.toLowerCase() === moveString
       );
       if (move) {
         activeBattle.battle.registerAction(activeBattle.battle[player], move);
         if (activeBattle.battle?.currentTurn[otherPlayer]) {
           activeBattle.battle?.rollTurn();
-          notifyPlayers("Rolou turno");
         } else {
           // TODO start counter
           m.author.send("Waiting for oponent");
@@ -321,12 +370,12 @@ useClient().on("message", async (m) => {
       }
     }
   } else if (
-    (m.author.id === activeBattle.p1?.id ||
-      m.author.id === activeBattle.p2?.id) &&
+    (m.author.id === activeBattle.p1?.user.id ||
+      m.author.id === activeBattle.p2?.user.id) &&
     message.startsWith("change")
   ) {
     const changeString = message.slice("change".length).trim();
-    const player = activeBattle.p1?.id === m.author.id ? "p1" : "p2";
+    const player = activeBattle.p1?.user.id === m.author.id ? "p1" : "p2";
     const activePlayer = activeBattle.battle?.[player] as Player;
     const otherPlayer = player === "p1" ? "p2" : "p1";
     const pokemon = activeBattle.battle?.[player].pokemon.find(
@@ -349,12 +398,7 @@ useClient().on("message", async (m) => {
     if (pokemon && activeBattle[player]) {
       activeBattle.battle?.registerAction(activePlayer, pokemon);
       if (activeBattle.battle?.currentTurn[otherPlayer]) {
-        m.author.send(`You sent ${pokemon.originalPokemon.name}`);
         activeBattle.battle?.rollTurn();
-        activeBattle[otherPlayer]?.channel.send(
-          `Your oponnent sent a ${pokemon.originalPokemon.name}`
-        );
-        notifyPlayers("Rolou turno");
       } else {
         // TODO start counter
         m.author.send("Waiting for oponent");

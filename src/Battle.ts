@@ -23,12 +23,10 @@ export class Player {
   }
 
   changeActivePokemon(pokemon: InBattlePokemon) {
-    console.log(this.pokemon.map((e) => e.originalPokemon.name));
     const index = this.pokemon.findIndex(
       (p) => p.originalPokemon.name === pokemon.originalPokemon.name
     );
     this.inBattleIndex = index;
-    console.log(this.pokemon.map((e) => e.originalPokemon.name));
   }
 }
 
@@ -135,7 +133,11 @@ export default class Battle {
     const user = target === "p1" ? "p2" : "p1";
 
     if (result.damage) {
-      this[target].inBattle.hp -= result.damage;
+      this[target].inBattle.hp -= result.damage * 5;
+      this.eventsSubject.next({
+        id: "resultDamage",
+        value: { target, damage: result.damage },
+      });
     }
 
     if (result.target) {
@@ -154,16 +156,23 @@ export default class Battle {
   rollMove(user: "p1" | "p2") {
     const target = user === "p1" ? "p2" : "p1";
 
-    if (this.currentTurn[user] instanceof Move) {
+    const move = this.currentTurn[user];
+    if (move instanceof Move) {
       const result = this.useMove(user);
+      this.eventsSubject.next({
+        id: "pokemonMove",
+        value: { player: user, move: move.name },
+      });
       this.applyResult(result, target);
     }
 
-    if (
-      this[target].inBattle.hp > 0 &&
-      this.currentTurn[target] instanceof Move
-    ) {
+    const targetMove = this.currentTurn[target];
+    if (this[target].inBattle.hp > 0 && targetMove instanceof Move) {
       const result = this.useMove(target);
+      this.eventsSubject.next({
+        id: "pokemonMove",
+        value: { player: target, move: targetMove.name },
+      });
       this.applyResult(result, user);
     }
   }
@@ -171,10 +180,26 @@ export default class Battle {
   rollTurn() {
     if (this.currentTurn.p1 && this.currentTurn.p2) {
       if (this.currentTurn.p1 instanceof InBattlePokemon) {
+        this.eventsSubject.next({
+          id: "changePokemon",
+          value: {
+            player: "p1",
+            out: this.p1.inBattle.originalPokemon.name,
+            in: this.currentTurn.p1.originalPokemon.name,
+          },
+        });
         this.p1.changeActivePokemon(this.currentTurn.p1);
       }
 
       if (this.currentTurn.p2 instanceof InBattlePokemon) {
+        this.eventsSubject.next({
+          id: "changePokemon",
+          value: {
+            player: "p2",
+            out: this.p1.inBattle.originalPokemon.name,
+            in: this.currentTurn.p2.originalPokemon.name,
+          },
+        });
         this.p2.changeActivePokemon(this.currentTurn.p2);
       }
 
@@ -215,6 +240,7 @@ interface InBattleAttributeModifier {
 class InBattlePokemon {
   originalPokemon: Pokemon;
   hp: number;
+  totalHp: number;
   attributeModifier: InBattleAttributeModifier[];
 
   get speed() {
@@ -226,12 +252,11 @@ class InBattlePokemon {
       this.originalPokemon = pokemon;
       this.attributeModifier = [];
       const base = (2 * pokemon.base_stats.hp * pokemon.level) / 100;
-      // this.hp = base + pokemon.level + 10;
-      this.hp = 5;
+      this.hp = this.totalHp = base + pokemon.level + 10;
     } else {
       this.originalPokemon = pokemon.originalPokemon;
       this.attributeModifier = pokemon.attributeModifier;
-      this.hp = pokemon.hp;
+      this.hp = this.totalHp = pokemon.hp;
     }
   }
 }
