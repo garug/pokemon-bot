@@ -16,7 +16,6 @@ export interface OwnedPokemon extends Document {
     sp_attack: Number;
     sp_defense: Number;
     speed: Number;
-    reflex: Number;
   };
 }
 
@@ -42,7 +41,6 @@ const OwnedPokemonSchema = new Schema({
     sp_attack: Number,
     sp_defense: Number,
     speed: Number,
-    reflex: Number,
   },
 });
 

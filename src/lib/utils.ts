@@ -8,14 +8,18 @@ export function randomFromInterval(min: number, max: number) {
   );
 }
 
+export function calculatePower(attack: number, defense: number) {
+  // TODO
+}
+
 export function randomPokemon() {
   return new Pokemon({
-    name: "abc",
+    name: `abc${randomFromInterval(1, 1000)}`,
     level: 1,
     attributes: {
-      hp: 50,
+      hp: 1,
       attack: 50,
-      defense: 50,
+      defense: 1,
       sp_attack: 50,
       sp_defense: 50,
       speed: 50,
@@ -33,7 +37,7 @@ export function generateNumber(number: number) {
     return number * randomFromInterval(1.25, 1.4);
   } else if (chance < 0.95) {
     return number * randomFromInterval(1.4, 1.65);
-  } else if (chance < 0.98) {
+  } else if (chance < 0.99) {
     return number * randomFromInterval(1.75, 2);
   } else {
     return number * 3;

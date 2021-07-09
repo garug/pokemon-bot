@@ -65,9 +65,6 @@ export default async function handleLastPokemon(m: Message) {
     return acc;
   }, {});
 
-  attributes.reflex =
-    (attributes.attack + attributes.defense + attributes.speed) / 3;
-
   let total = 0;
   let totalCopy = 0;
   const copy = {} as any;

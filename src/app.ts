@@ -4,8 +4,8 @@ import axios from "axios";
 import Database from "./MongoDatabase";
 import OwnedPokemon from "./OwnedPokemon";
 import SetPokemon from "./SetPokemon";
-import { generateNumber, randomFromInterval, randomPokemon } from "./lib/utils";
-import Battle from "./Battle";
+import { generateNumber, randomPokemon } from "./lib/utils";
+import Battle, { Player } from "./Battle";
 import Move from "./lib/moves";
 import handleLastPokemon, {
   lastPokemonRunAway,
@@ -15,9 +15,9 @@ import handleLastPokemon, {
 import { useChannel, useClient } from "./discord";
 import handleDex from "./messages/dex";
 
-const maxInterval = 20 * 60 * 1000;
+const maxInterval = 5 * 60 * 1000;
 
-const chanceInterval = 24 * 60 * 60 * 1000;
+const chanceInterval = 1 * 60 * 1000;
 
 interface RoomBattle {
   p1?: {
@@ -57,9 +57,16 @@ async function sendMovesToPlayers() {
         user
       ].inBattle.originalPokemon.moves.map((e) => e.name);
 
-      const moves = new MessageEmbed()
-        .setColor("#f39c12")
-        .setDescription(`Choose your move: ${movesList}`);
+      const pokemonList = activeBattle.battle?.[user].pokemon
+        .filter((e) => e.hp > 0)
+        .map((e) => e.originalPokemon.name);
+
+      const moves = new MessageEmbed().setColor("#f39c12")
+        .setDescription(`Choose your move: ${movesList}
+        
+        Or...
+        
+        Choose another pokemon: ${pokemonList}`);
 
       userDiscord.send(moves);
     } else {
@@ -178,7 +185,7 @@ useClient().on("message", async (m) => {
         p.save().then((r) => console.log(r));
       }
     });
-  } else if (message === "battle123") {
+  } else if (message === "battle!") {
     if (!activeBattle.p1 && !activeBattle.p2) {
       const isVerified = await verifyTeam(m.author.id);
       let reply: MessageEmbed;
@@ -190,7 +197,7 @@ useClient().on("message", async (m) => {
         reply = new MessageEmbed()
           .setColor("#f39c12")
           .setDescription(
-            `${m.author.username} is waiting for battle! Type "battle!" to accept the challenge.`
+            `${m.author.username} is waiting to battle! Type "battle!" to accept the challenge.`
           );
       } else {
         reply = new MessageEmbed()
@@ -242,10 +249,45 @@ useClient().on("message", async (m) => {
         );
 
         activeBattle.battle?.events.subscribe((event) => {
-          const reply = new MessageEmbed()
-            .setColor("#f39c12")
-            .setDescription(event);
-          m.channel.send(reply);
+          if (event.id === "resultTurn") {
+            const handleDefeat = (player: "p1" | "p2"): boolean => {
+              const enemy = player === "p1" ? "p2" : "p1";
+              const pokemonList =
+                activeBattle.battle?.[player].pokemon
+                  .filter((e) => e.hp > 0)
+                  .map((e) => e.originalPokemon.name) || [];
+              activeBattle[player]?.channel.send(
+                "Your pokemon has been defeated!"
+              );
+
+              if (pokemonList.length > 0) {
+                activeBattle[player]?.channel.send(
+                  `Choose another pokemon: ${pokemonList}`
+                );
+                activeBattle[enemy]?.channel.send(
+                  "Your oponnent has been defeated!"
+                );
+              } else {
+                activeBattle[player]?.channel.send(`You lose!`);
+                activeBattle[enemy]?.channel.send("You win!");
+                return true;
+              }
+              return false;
+            };
+            if (event.value.defeats.p1) {
+              if (handleDefeat("p1")) return;
+            }
+
+            if (event.value.defeats.p2) {
+              if (handleDefeat("p2")) return;
+            }
+
+            const reply = new MessageEmbed()
+              .setColor("#f39c12")
+              .setDescription(event);
+
+            notifyPlayers(reply);
+          }
         });
 
         sendMovesToPlayers();
@@ -275,8 +317,50 @@ useClient().on("message", async (m) => {
           m.author.send("Waiting for oponent");
         }
       } else {
-        m.author.send("Your pokemon not learned this move.");
+        m.author.send("Your pokemon didn't learn this move.");
       }
+    }
+  } else if (
+    (m.author.id === activeBattle.p1?.id ||
+      m.author.id === activeBattle.p2?.id) &&
+    message.startsWith("change")
+  ) {
+    const changeString = message.slice("change".length).trim();
+    const player = activeBattle.p1?.id === m.author.id ? "p1" : "p2";
+    const activePlayer = activeBattle.battle?.[player] as Player;
+    const otherPlayer = player === "p1" ? "p2" : "p1";
+    const pokemon = activeBattle.battle?.[player].pokemon.find(
+      (p) => p.originalPokemon.name === changeString
+    );
+
+    if (
+      activeBattle.battle &&
+      pokemon &&
+      activeBattle.battle[player].inBattle.hp <= 0
+    ) {
+      activeBattle.battle[player].changeActivePokemon(pokemon);
+      m.author.send(`You sent ${pokemon.originalPokemon.name}`);
+      activeBattle[otherPlayer]?.channel.send(
+        `Your oponnent sent a ${pokemon.originalPokemon.name}`
+      );
+      return;
+    }
+
+    if (pokemon && activeBattle[player]) {
+      activeBattle.battle?.registerAction(activePlayer, pokemon);
+      if (activeBattle.battle?.currentTurn[otherPlayer]) {
+        m.author.send(`You sent ${pokemon.originalPokemon.name}`);
+        activeBattle.battle?.rollTurn();
+        activeBattle[otherPlayer]?.channel.send(
+          `Your oponnent sent a ${pokemon.originalPokemon.name}`
+        );
+        notifyPlayers("Rolou turno");
+      } else {
+        // TODO start counter
+        m.author.send("Waiting for oponent");
+      }
+    } else {
+      m.author.send("You don't have this pokemon.");
     }
   }
 });

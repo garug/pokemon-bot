@@ -7,19 +7,28 @@ interface PlayerOptions {
   pokemon: [Pokemon, Pokemon, Pokemon, Pokemon, Pokemon, Pokemon];
 }
 
-class Player {
+export class Player {
   name: string;
-  inBattle: InBattlePokemon;
+  private inBattleIndex: number;
   pokemon: InBattlePokemon[];
+
+  get inBattle() {
+    return this.pokemon[this.inBattleIndex];
+  }
 
   constructor(opt: PlayerOptions) {
     this.name = opt.name;
     this.pokemon = opt.pokemon.map((p) => new InBattlePokemon(p));
-    this.inBattle = this.pokemon[0];
+    this.inBattleIndex = 0;
   }
 
   changeActivePokemon(pokemon: InBattlePokemon) {
-    this.inBattle = pokemon;
+    console.log(this.pokemon.map((e) => e.originalPokemon.name));
+    const index = this.pokemon.findIndex(
+      (p) => p.originalPokemon.name === pokemon.originalPokemon.name
+    );
+    this.inBattleIndex = index;
+    console.log(this.pokemon.map((e) => e.originalPokemon.name));
   }
 }
 
@@ -28,11 +37,16 @@ interface Turn {
   p2?: Move | InBattlePokemon;
 }
 
+interface Event {
+  id: string;
+  value: any;
+}
+
 export default class Battle {
   p1: Player;
   p2: Player;
 
-  private eventsSubject = new Subject<string>();
+  private eventsSubject = new Subject<Event>();
 
   get events() {
     return this.eventsSubject.asObservable();
@@ -45,7 +59,7 @@ export default class Battle {
   constructor(p1: PlayerOptions, p2: PlayerOptions) {
     this.p1 = new Player(p1);
     this.p2 = new Player(p2);
-    this.eventsSubject.next("Battle Begins!");
+    this.eventsSubject.next({ id: "start", value: "Battle Begin!" });
   }
 
   registerAction(player: Player, action: Move | InBattlePokemon) {
@@ -120,10 +134,8 @@ export default class Battle {
   applyResult(result: MoveResult, target: "p1" | "p2") {
     const user = target === "p1" ? "p2" : "p1";
 
-    console.log(result);
     if (result.damage) {
       this[target].inBattle.hp -= result.damage;
-      this.eventsSubject.next(result.damage.toString());
     }
 
     if (result.target) {
@@ -177,6 +189,19 @@ export default class Battle {
       }
 
       this.currentTurn = {};
+      const p1Defeat = this.p1.inBattle.hp <= 0;
+      const p2Defeat = this.p2.inBattle.hp <= 0;
+      console.log(this.p1.pokemon.map((e) => e.hp));
+      console.log(this.p2.pokemon.map((e) => e.hp));
+      this.eventsSubject.next({
+        id: "resultTurn",
+        value: {
+          defeats: {
+            p1: p1Defeat,
+            p2: p2Defeat,
+          },
+        },
+      });
       this.turns++;
     }
   }
@@ -201,7 +226,8 @@ class InBattlePokemon {
       this.originalPokemon = pokemon;
       this.attributeModifier = [];
       const base = (2 * pokemon.base_stats.hp * pokemon.level) / 100;
-      this.hp = base + pokemon.level + 10;
+      // this.hp = base + pokemon.level + 10;
+      this.hp = 5;
     } else {
       this.originalPokemon = pokemon.originalPokemon;
       this.attributeModifier = pokemon.attributeModifier;
