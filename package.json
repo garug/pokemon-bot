@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/app.js",
+    "start": "node ./dist/app.js",
     "build": "tsc",
     "dev": "ts-node-dev -r dotenv/config --ignore-watch node_modules src/app.ts"
   },
