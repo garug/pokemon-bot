@@ -18,7 +18,9 @@ interface Attributes {
 }
 
 interface PokemonOptions {
+  id: string;
   name: string;
+  number: number;
   level: number;
   attributes: Attributes;
   moves: [Move, Move, Move, Move];
@@ -26,7 +28,9 @@ interface PokemonOptions {
 }
 
 export default class Pokemon {
+  id: string;
   name: string;
+  number: number;
   level: number;
   hp: number;
   base_stats: Attributes;
@@ -41,6 +45,8 @@ export default class Pokemon {
       this.base_stats = opt.attributes;
       this.hp = 1;
     }
+    this.id = opt.id;
+    this.number = opt.number;
     this.name = opt.name;
     this.level = opt.level;
     this.moves = opt.moves;

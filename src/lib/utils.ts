@@ -1,3 +1,4 @@
+import { v4 } from "uuid";
 import Pokemon from "../Pokemon";
 import { moves } from "./moves";
 
@@ -9,7 +10,9 @@ export function randomFromInterval(min: number, max: number) {
 
 export function randomPokemon() {
   return new Pokemon({
+    id: v4(),
     name: `abc${randomFromInterval(1, 1000)}`,
+    number: 1,
     level: 1,
     attributes: {
       hp: 50,

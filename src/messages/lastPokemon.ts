@@ -76,12 +76,10 @@ export default async function handleLastPokemon(m: Message) {
 
   const rank = totalCopy / total;
 
-  console.log(`ranks: ${totalCopy} / ${total}`);
-
   const reply = new MessageEmbed()
     .setColor("#f39c12")
     .setDescription(
-      `${m.author.username} caught a ${name}! Class ${whatIsMyGrade(rank)}!`
+      `${m.author} caught a ${name}! Class ${whatIsMyGrade(rank)}!`
     );
 
   updateLastPokemon();

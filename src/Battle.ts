@@ -1,6 +1,8 @@
 import { Subject } from "rxjs";
+import { v4 as uuid } from "uuid";
 import Move, { ModifyAttribute, MoveResult } from "./lib/moves";
 import Pokemon, { Attribute } from "./Pokemon";
+import { publicPokemon, useSocket } from "./socket";
 
 interface PlayerOptions {
   name: string;
@@ -10,16 +12,22 @@ interface PlayerOptions {
 export class Player {
   name: string;
   private inBattleIndex: number;
+  private usedPokemon: number[];
   pokemon: InBattlePokemon[];
 
   get inBattle() {
     return this.pokemon[this.inBattleIndex];
   }
 
+  get alreadyUsed() {
+    return this.usedPokemon.map((index) => this.pokemon[index]);
+  }
+
   constructor(opt: PlayerOptions) {
     this.name = opt.name;
     this.pokemon = opt.pokemon.map((p) => new InBattlePokemon(p));
     this.inBattleIndex = 0;
+    this.usedPokemon = [0];
   }
 
   changeActivePokemon(pokemon: InBattlePokemon) {
@@ -27,12 +35,17 @@ export class Player {
       (p) => p.originalPokemon.name === pokemon.originalPokemon.name
     );
     this.inBattleIndex = index;
+
+    if (!this.usedPokemon.find((e) => e === index)) {
+      this.usedPokemon.push(index);
+    }
   }
 }
 
-interface Turn {
+export interface Turn {
   p1?: Move | InBattlePokemon;
   p2?: Move | InBattlePokemon;
+  events: String[];
 }
 
 interface Event {
@@ -41,8 +54,10 @@ interface Event {
 }
 
 export default class Battle {
+  id: string;
   p1: Player;
   p2: Player;
+  visitorKey: string;
 
   private eventsSubject = new Subject<Event>();
 
@@ -50,14 +65,27 @@ export default class Battle {
     return this.eventsSubject.asObservable();
   }
 
-  currentTurn: Turn = {};
+  currentTurn: Turn = { events: [] };
 
-  turns = 0;
+  turns: Turn[];
 
   constructor(p1: PlayerOptions, p2: PlayerOptions) {
+    this.id = uuid();
+    this.visitorKey = uuid();
     this.p1 = new Player(p1);
     this.p2 = new Player(p2);
-    this.eventsSubject.next({ id: "start", value: "Battle Begin!" });
+    this.turns = [
+      {
+        events: [
+          `${this.p1.name} sent a ${this.p1.inBattle.originalPokemon.name}`,
+          `${this.p2.name} sent a ${this.p2.inBattle.originalPokemon.name}`,
+        ],
+      },
+    ];
+    setTimeout(
+      () => this.eventsSubject.next({ id: "start", value: "Battle Begin!" }),
+      100
+    );
   }
 
   registerAction(player: Player, action: Move | InBattlePokemon) {
@@ -65,6 +93,16 @@ export default class Battle {
       this.currentTurn.p1 = action;
     } else if (player === this.p2) {
       this.currentTurn.p2 = action;
+    } else {
+      console.warn("Invalid player");
+    }
+  }
+
+  waitingOther(player: Player) {
+    if (player === this.p1) {
+      return !!this.currentTurn.p2;
+    } else if (player === this.p2) {
+      return !!this.currentTurn.p1;
     } else {
       console.warn("Invalid player");
     }
@@ -133,7 +171,12 @@ export default class Battle {
     const user = target === "p1" ? "p2" : "p1";
 
     if (result.damage) {
-      this[target].inBattle.hp -= result.damage * 5;
+      const damage = result.damage * 5;
+      this[target].inBattle.hp -= damage;
+      useSocket().to(this.id).emit("resultDamage", {
+        target: this[target].inBattle.originalPokemon.id,
+        damage,
+      });
       this.eventsSubject.next({
         id: "resultDamage",
         value: { target, damage: result.damage },
@@ -180,6 +223,13 @@ export default class Battle {
   rollTurn() {
     if (this.currentTurn.p1 && this.currentTurn.p2) {
       if (this.currentTurn.p1 instanceof InBattlePokemon) {
+        useSocket()
+          .to(this.id)
+          .emit("changePokemon", {
+            player: "p1",
+            out: this.p1.inBattle,
+            in: publicPokemon(this.currentTurn.p1),
+          });
         this.eventsSubject.next({
           id: "changePokemon",
           value: {
@@ -192,6 +242,13 @@ export default class Battle {
       }
 
       if (this.currentTurn.p2 instanceof InBattlePokemon) {
+        useSocket()
+          .to(this.id)
+          .emit("changePokemon", {
+            player: "p2",
+            out: this.p2.inBattle,
+            in: publicPokemon(this.currentTurn.p2),
+          });
         this.eventsSubject.next({
           id: "changePokemon",
           value: {
@@ -213,11 +270,9 @@ export default class Battle {
         this.rollMove(Math.random() > 0.5 ? "p1" : "p2");
       }
 
-      this.currentTurn = {};
+      this.currentTurn = { events: [] };
       const p1Defeat = this.p1.inBattle.hp <= 0;
       const p2Defeat = this.p2.inBattle.hp <= 0;
-      console.log(this.p1.pokemon.map((e) => e.hp));
-      console.log(this.p2.pokemon.map((e) => e.hp));
       this.eventsSubject.next({
         id: "resultTurn",
         value: {
@@ -227,7 +282,7 @@ export default class Battle {
           },
         },
       });
-      this.turns++;
+      this.turns.push(this.currentTurn);
     }
   }
 }
@@ -237,7 +292,7 @@ interface InBattleAttributeModifier {
   value: number;
 }
 
-class InBattlePokemon {
+export class InBattlePokemon {
   originalPokemon: Pokemon;
   hp: number;
   totalHp: number;
