@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node ./dist/app.js",
+    "gcp-build": "tsc -p .",
     "build": "tsc",
     "dev": "ts-node-dev -r dotenv/config --ignore-watch node_modules src/app.ts"
   },
