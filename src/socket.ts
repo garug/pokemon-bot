@@ -1,8 +1,8 @@
 import { createServer, Server as HttpServer } from "http";
 import socketIO, { Server } from "socket.io";
-import { activeBattles } from "./app";
 import Battle, { InBattlePokemon, Player, Turn } from "./Battle";
 import { Express } from "express";
+import { activeBattles } from "./battle-manager";
 
 let io: Server;
 

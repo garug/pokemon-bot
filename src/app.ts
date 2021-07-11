@@ -19,6 +19,7 @@ import useSocket from "./socket";
 import { v4 as uuid } from "uuid";
 import express, { json } from "express";
 import cors from "cors";
+import { activeBattles } from "./battle-manager";
 
 const app = express();
 
@@ -59,8 +60,6 @@ class InviteBattle {
 }
 
 const currentInvites: InviteBattle[] = [];
-
-export const activeBattles: Battle[] = [];
 
 async function verifyTeam(user: string) {
   const pokemon = await OwnedPokemon.find({ user });
@@ -229,15 +228,12 @@ useClient().on("message", async (m) => {
           //   event.value.player === "p1" ? invite.challenger : invite.challenged;
           // const adversary =
           //   event.value.player === "p1" ? invite.challenged : invite.challenger;
-
           // const myMessage = new MessageEmbed().setDescription(
           //   `You used ${event.value.move}!`
           // );
-
           // const messageToAdversary = new MessageEmbed().setDescription(
           //   `Your enemy used ${event.value.move}!`
           // );
-
           // me.send(myMessage);
           // adversary.send(messageToAdversary);
         } else if (event.id === "resultTurn") {
