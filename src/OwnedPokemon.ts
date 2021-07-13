@@ -25,7 +25,7 @@ const OwnedPokemonSchema = new Schema({
   name: { type: String, required: true },
   user: { type: String, required: true },
   original_user: { type: String, required: true },
-  created_at: { type: Date, required: true, default: Date.now() },
+  created_at: { type: Date, required: true, default: Date.now },
   level: { type: Number, required: true },
   moves: {
     type: String,
