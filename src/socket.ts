@@ -1,7 +1,6 @@
-import { createServer, Server as HttpServer } from "http";
-import socketIO, { Server } from "socket.io";
+import { Server as HttpServer } from "http";
+import { Server } from "socket.io";
 import Battle, { InBattlePokemon, Player, Turn } from "./Battle";
-import { Express } from "express";
 import { activeBattles } from "./battle-manager";
 
 let io: Server;
@@ -46,8 +45,8 @@ export default function createSocket(server: HttpServer) {
     socket.on("connect-battle", (connectId) => {
       const battle = activeBattles.find((e) => {
         return (
-          e.p1.name === connectId ||
-          e.p2.name === connectId ||
+          e.p1.id === connectId ||
+          e.p2.id === connectId ||
           e.visitorKey === connectId
         );
       });
@@ -74,17 +73,21 @@ export default function createSocket(server: HttpServer) {
       socket.emit("battle", battle.id);
 
       const handlePlayer = (player: "p1" | "p2") => {
-        socket.data.battles.push({
-          id: battle.id,
-          player: battle[player],
-        });
-        socket.emit("actions", actionsOf(battle[player]));
-        socket.emit("identity", player);
+        if (battle[player].id === connectId) {
+          socket.data.battles.push({
+            id: battle.id,
+            player: battle[player],
+          });
+          socket.emit("actions", actionsOf(battle[player]));
+          socket.emit("identity", player);
+        }
       };
 
-      if (battle.p1.name === connectId) handlePlayer("p1");
+      handlePlayer("p1");
 
-      if (battle.p2.name === connectId) handlePlayer("p2");
+      handlePlayer("p2");
+
+      if (battle.winner) socket.emit("winner", battle.winner);
     });
 
     function handleMove(payload: any) {
@@ -117,7 +120,12 @@ export default function createSocket(server: HttpServer) {
       ) as InBattlePokemon;
 
       if (player.inBattle.hp <= 0) {
-        player.changeActivePokemon(pokemon);
+        io.to(battle.id).emit("changePokemon", {
+          player: battle.p1 === player ? "p1" : "p2",
+          out: player.inBattle,
+          in: publicPokemon(pokemon),
+        });
+        battle.changeActivePokemon(player, pokemon);
         return;
       }
 

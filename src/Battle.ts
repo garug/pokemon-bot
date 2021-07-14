@@ -5,14 +5,16 @@ import Pokemon, { Attribute } from "./Pokemon";
 import { publicPokemon, useSocket } from "./socket";
 
 interface PlayerOptions {
+  id: string;
   name: string;
   pokemon: [Pokemon, Pokemon, Pokemon, Pokemon, Pokemon, Pokemon];
 }
 
 export class Player {
+  id: string;
   name: string;
-  private inBattleIndex: number;
-  private usedPokemon: number[];
+  inBattleIndex: number;
+  usedPokemon: number[];
   pokemon: InBattlePokemon[];
 
   get inBattle() {
@@ -24,21 +26,11 @@ export class Player {
   }
 
   constructor(opt: PlayerOptions) {
+    this.id = opt.id;
     this.name = opt.name;
     this.pokemon = opt.pokemon.map((p) => new InBattlePokemon(p));
     this.inBattleIndex = 0;
     this.usedPokemon = [0];
-  }
-
-  changeActivePokemon(pokemon: InBattlePokemon) {
-    const index = this.pokemon.findIndex(
-      (p) => p.originalPokemon.name === pokemon.originalPokemon.name
-    );
-    this.inBattleIndex = index;
-
-    if (!this.usedPokemon.find((e) => e === index)) {
-      this.usedPokemon.push(index);
-    }
   }
 }
 
@@ -58,6 +50,7 @@ export default class Battle {
   p1: Player;
   p2: Player;
   visitorKey: string;
+  winner: "p1" | "p2" | undefined;
 
   private eventsSubject = new Subject<Event>();
 
@@ -173,10 +166,24 @@ export default class Battle {
     if (result.damage) {
       const damage = result.damage * 5;
       this[target].inBattle.hp -= damage;
+      this.sentEvent(`Deals ${damage} of damage!`);
       useSocket().to(this.id).emit("resultDamage", {
-        target: this[target].inBattle.originalPokemon.id,
+        target,
         damage,
       });
+
+      if (this[target].inBattle.hp <= 0) {
+        this.sentEvent(
+          `${this[target].inBattle.originalPokemon.name} defeated!`
+        );
+        useSocket()
+          .to(this.id)
+          .emit("pokemonDefeated", {
+            target,
+            pokemon: publicPokemon(this[target].inBattle),
+          });
+      }
+
       this.eventsSubject.next({
         id: "resultDamage",
         value: { target, damage: result.damage },
@@ -206,6 +213,7 @@ export default class Battle {
         id: "pokemonMove",
         value: { player: user, move: move.name },
       });
+      this.sentEvent(`${this[user].name} used ${move.name}...`);
       this.applyResult(result, target);
     }
 
@@ -216,8 +224,28 @@ export default class Battle {
         id: "pokemonMove",
         value: { player: target, move: targetMove.name },
       });
+      this.sentEvent(`${this[target].name} used ${targetMove.name}...`);
       this.applyResult(result, user);
     }
+  }
+
+  changeActivePokemon(player: Player, pokemon: InBattlePokemon) {
+    const index = player.pokemon.findIndex(
+      (p) => p.originalPokemon.name === pokemon.originalPokemon.name
+    );
+    this.sentEvent(
+      `${player.name} call ${player.inBattle.originalPokemon.name} back... And sent a ${pokemon.originalPokemon.name}!`
+    );
+    player.inBattleIndex = index;
+
+    if (!player.usedPokemon.find((e) => e === index)) {
+      player.usedPokemon.push(index);
+    }
+  }
+
+  sentEvent(event: string) {
+    useSocket().to(this.id).emit("event", event);
+    this.currentTurn.events.push(event);
   }
 
   rollTurn() {
@@ -238,7 +266,7 @@ export default class Battle {
             in: this.currentTurn.p1.originalPokemon.name,
           },
         });
-        this.p1.changeActivePokemon(this.currentTurn.p1);
+        this.changeActivePokemon(this.p1, this.currentTurn.p1);
       }
 
       if (this.currentTurn.p2 instanceof InBattlePokemon) {
@@ -257,7 +285,7 @@ export default class Battle {
             in: this.currentTurn.p2.originalPokemon.name,
           },
         });
-        this.p2.changeActivePokemon(this.currentTurn.p2);
+        this.changeActivePokemon(this.p2, this.currentTurn.p2);
       }
 
       const difference = this.p1.inBattle.speed - this.p2.inBattle.speed;
@@ -270,19 +298,28 @@ export default class Battle {
         this.rollMove(Math.random() > 0.5 ? "p1" : "p2");
       }
 
+      this.turns.push(this.currentTurn);
       this.currentTurn = { events: [] };
-      const p1Defeat = this.p1.inBattle.hp <= 0;
-      const p2Defeat = this.p2.inBattle.hp <= 0;
+      const pokemonP1Defeat = this.p1.inBattle.hp <= 0;
+      const pokemonP2Defeat = this.p2.inBattle.hp <= 0;
+
+      if (this.p1.pokemon.every((p) => p.hp <= 0)) this.winner = "p2";
+
+      if (this.p2.pokemon.every((p) => p.hp <= 0)) this.winner = "p1";
+
       this.eventsSubject.next({
         id: "resultTurn",
         value: {
           defeats: {
-            p1: p1Defeat,
-            p2: p2Defeat,
+            p1: pokemonP1Defeat,
+            p2: pokemonP2Defeat,
           },
         },
       });
-      this.turns.push(this.currentTurn);
+
+      if (this.winner) {
+        useSocket().to(this.id).emit("winner", this.winner);
+      }
     }
   }
 }

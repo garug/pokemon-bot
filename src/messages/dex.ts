@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from "discord.js";
-import OwnedPokemon from "../OwnedPokemon";
+import OwnedPokemon from "../models/OwnedPokemon";
 
 export default async function handleDex(m: Message) {
   const ownedPokemon = await OwnedPokemon.aggregate([
@@ -29,11 +29,13 @@ export default async function handleDex(m: Message) {
     },
   ]);
   const uniquePokemon = [...new Set(ownedPokemon.map((p) => p.name))];
-  const strongest = [...ownedPokemon].splice(0, 6).map(e => e.name);
+  const strongest = [...ownedPokemon].splice(0, 6).map((e) => e.name);
   const reply = new MessageEmbed().setColor("#f39c12").setDescription(
     `${m.author.username} dex: ${uniquePokemon.length}/151
 
-    Strongest pokemon: ${strongest}`
+    Strongest pokemon: ${strongest}
+    
+    Full dex: ${process.env.FRONTEND_URL}/usuarios/${m.author.id}`
   );
   // [Full dex](https://vigilant-villani-fedc91.netlify.app/#/usuarios/${m.author.id})
   m.channel.send(reply);

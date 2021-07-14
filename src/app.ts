@@ -2,7 +2,7 @@ import { DMChannel, Invite, MessageEmbed, User } from "discord.js";
 import axios from "axios";
 
 import Database from "./MongoDatabase";
-import OwnedPokemon from "./OwnedPokemon";
+import OwnedPokemon from "./models/OwnedPokemon";
 import SetPokemon from "./SetPokemon";
 import { generateNumber, randomPokemon } from "./lib/utils";
 import Battle, { Player } from "./Battle";
@@ -20,6 +20,8 @@ import { v4 as uuid } from "uuid";
 import express, { json } from "express";
 import cors from "cors";
 import { activeBattles } from "./battle-manager";
+import qs from "qs";
+import MoreStrongPokemon from "./models/MoreStrongPokemon";
 
 const app = express();
 
@@ -34,11 +36,50 @@ useSocket(server);
 
 app.get("/users/:id", async (req, res) => {
   const { id } = req.params;
-  const pokemon = await OwnedPokemon.find(
+  const pokemon = await MoreStrongPokemon.find(
     { user: id },
-    "-_id name id created_at"
+    "-_id name number total id created_at"
   );
   return res.json({ pokemon });
+});
+
+app.post("/login", async (req, res) => {
+  const { code } = req.body;
+
+  const obj = {
+    client_id: "855825211826896906",
+    client_secret: "UePrbti0Rr_sDJIqDghfFwd14CjU5uGo",
+    code,
+    grant_type: "authorization_code",
+    redirect_uri: `http://localhost:8080`,
+    scope: "identify",
+  };
+
+  if (code) {
+    try {
+      const token = await axios.post(
+        "https://discord.com/api/oauth2/token",
+        qs.stringify(obj),
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
+      );
+      return res.json(token.data);
+    } catch {
+      return res.status(400).send();
+    }
+  }
+});
+
+app.post("/@me", async (req, res) => {
+  const token = req.body;
+  console.log(token);
+  const usuario = await axios.get("https://discord.com/api/users/@me", {
+    headers: {
+      authorization: `${token.token_type} ${token.access_token}`,
+    },
+  });
+  return res.json(usuario.data);
 });
 
 const maxInterval = 10 * 60 * 1000;
@@ -204,11 +245,13 @@ useClient().on("message", async (m) => {
 
       const battle = new Battle(
         {
-          name: challengerKey,
+          id: challengerKey,
+          name: invite.challenger.username,
           pokemon: p1,
         },
         {
-          name: challengedKey,
+          id: challengedKey,
+          name: invite.challenged.username,
           pokemon: p2,
         }
       );

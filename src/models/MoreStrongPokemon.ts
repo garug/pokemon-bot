@@ -1,25 +1,9 @@
 import { Document, model, Schema } from "mongoose";
+import { OwnedPokemon, OwnedPokemonSchema } from "./OwnedPokemon";
 
-export interface OwnedPokemon extends Document {
-  id: string;
-  name: string;
-  number: number;
-  user: string;
-  original_user: string;
-  created_at: Date;
-  level: number;
-  moves: [string, string, string, string];
-  attributes: {
-    hp: number;
-    attack: number;
-    defense: number;
-    sp_attack: number;
-    sp_defense: number;
-    speed: number;
-  };
-}
+export interface MoreStrongPokemon extends OwnedPokemon {}
 
-const OwnedPokemonSchema = new Schema({
+const MoreStrongPokemonSchema = new Schema({
   id: { type: String, required: true, unique: true },
   number: { type: Number, required: true },
   name: { type: String, required: true },
@@ -42,6 +26,11 @@ const OwnedPokemonSchema = new Schema({
     sp_defense: Number,
     speed: Number,
   },
+  total: Number,
 });
 
-export default model<OwnedPokemon>("OwnedPokemon", OwnedPokemonSchema);
+export default model<OwnedPokemon>(
+  "moreStrong",
+  MoreStrongPokemonSchema,
+  "moreStrong"
+);

@@ -2,7 +2,7 @@ import { Message, MessageEmbed } from "discord.js";
 import { v4 as uuid } from "uuid";
 import { useChannel } from "../discord";
 import { generateNumber } from "../lib/utils";
-import OwnedPokemon from "../OwnedPokemon";
+import OwnedPokemon from "../models/OwnedPokemon";
 
 let lastPokemon = {
   date: new Date(),
