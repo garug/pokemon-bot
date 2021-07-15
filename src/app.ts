@@ -34,6 +34,11 @@ const server = app
 
 useSocket(server);
 
+app.get("/users", async (req, res) => {
+  const pokemon = await MoreStrongPokemon.find();
+  return res.json({ pokemon });
+});
+
 app.get("/users/:id", async (req, res) => {
   const { id } = req.params;
   const pokemon = await MoreStrongPokemon.find(
