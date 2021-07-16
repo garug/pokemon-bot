@@ -116,9 +116,9 @@ app.post("/@me", async (req, res) => {
   return res.json(usuario.data);
 });
 
-const maxInterval = 10 * 60 * 1000;
+const maxInterval = 12 * 60 * 1000;
 
-const chanceInterval = 24 * 60 * 60 * 1000;
+const chanceInterval = 1 * 60 * 1000;
 
 setInterval(async () => {
   const now = new Date().getTime();

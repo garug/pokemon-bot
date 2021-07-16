@@ -62,7 +62,7 @@ export async function acceptTrade(m: Message) {
         );
       }
     });
-    m.channel.send(`Trade ${offer.id} successfully!`);
+    m.channel.send(`Complete trade ${offer.id} successfully!`);
     offer.delete();
   } else {
     m.channel.send(`${m.author} something wrong with your command.`);
@@ -75,7 +75,7 @@ export async function refuseTrade(m: Message) {
   const offer = await Offer.findOne({ id: idOffer, owner: m.author.id });
 
   if (offer) {
-    m.channel.send(`Trade ${offer.id} refused.`);
+    m.channel.send(`Done, trade ${offer.id} refused.`);
     offer.delete();
   } else {
     m.channel.send(`${m.author} something wrong with your command.`);
