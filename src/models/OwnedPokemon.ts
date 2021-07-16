@@ -9,6 +9,9 @@ export interface OwnedPokemon extends Document {
   created_at: Date;
   level: number;
   moves: [string, string, string, string];
+  marks: {
+    tradable: boolean;
+  },
   attributes: {
     hp: number;
     attack: number;
@@ -33,6 +36,9 @@ export const OwnedPokemonSchema = new Schema({
       (val: Array<string>) => val.length === 4,
       "{moves} needs four elements",
     ],
+  },
+  marks: {
+    tradable: Boolean,
   },
   attributes: {
     hp: Number,
