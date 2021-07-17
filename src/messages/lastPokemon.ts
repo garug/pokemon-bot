@@ -85,7 +85,6 @@ export default async function handleLastPokemon(m: Message) {
   updateLastPokemon();
 
   await OwnedPokemon.create({
-    id: uuid(),
     number,
     name,
     user: m.author.id,
