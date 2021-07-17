@@ -12,7 +12,7 @@ export interface OwnedPokemon extends Document {
   moves: [string, string, string, string];
   marks: {
     tradable: boolean;
-  },
+  };
   attributes: {
     hp: number;
     attack: number;
@@ -24,7 +24,12 @@ export interface OwnedPokemon extends Document {
 }
 
 export const OwnedPokemonSchema = new Schema({
-  id: { type: String, required: true, unique: true, default: generate(6) },
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+    default: () => generate(6),
+  },
   number: { type: Number, required: true },
   name: { type: String, required: true },
   user: { type: String, required: true },
