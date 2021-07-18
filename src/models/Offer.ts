@@ -15,7 +15,7 @@ export const OfferSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    default: generate(5),
+    default: () => generate(5),
   },
   created_at: { type: Date, required: true, default: Date.now },
   offeror: { type: String, required: true },
