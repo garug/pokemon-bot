@@ -15,14 +15,12 @@ export function useChannel() {
 client.login(process.env.DISCORD_TOKEN);
 
 async function defaultRequest(obj: any, url?: string) {
-  url ||= "https://discord.com/api/oauth2/token";
+  url = url ? url : "https://discord.com/api/oauth2/token";
   obj = {
     ...obj,
     client_secret: process.env.DISCORD_CLIENT_SECRET,
     client_id: process.env.DISCORD_CLIENT_ID,
   };
-
-  console.log(obj);
 
   return axios.post(url, qs.stringify(obj), {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
