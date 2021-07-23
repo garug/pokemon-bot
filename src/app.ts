@@ -12,11 +12,17 @@ import handleLastPokemon, {
   updateLastPokemon,
   useLastPokemon,
 } from "./messages/lastPokemon";
-import { useChannel, useClient } from "./discord";
+import {
+  generateToken,
+  refreshToken,
+  revokeToken,
+  useChannel,
+  useClient,
+} from "./discord";
 import handleDex from "./messages/dex";
 import handleBattle from "./messages/battle";
 import handleInfo from "./messages/info";
-import { mark } from "./messages/pokemon";
+import { mark, unmark } from "./messages/pokemon";
 import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
 import Pokemon from "./Pokemon";
 import useSocket from "./socket";
@@ -71,54 +77,65 @@ app.post("/battles", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { code } = req.body;
 
-  const obj = {
-    client_id: "855825211826896906",
-    client_secret: "UePrbti0Rr_sDJIqDghfFwd14CjU5uGo",
-    code,
-    grant_type: "authorization_code",
-    redirect_uri: `http://localhost:8080`,
-    scope: "identify",
-  };
-
   if (code) {
     try {
-      const token = await axios.post(
-        "https://discord.com/api/oauth2/token",
-        qs.stringify(obj),
-        {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        }
-      );
-      return res.json(token.data);
-    } catch {
-      return res.status(400).send();
+      return res.json(await generateToken(code));
+    } catch (e) {
+      console.log(e);
+      return res.status(400).send(e);
     }
+  } else {
+    res.status(401).send();
   }
 });
 
-app.get("/update", async (req, res) => {
-  (await OwnedPokemon.find()).forEach((e) => {
-    e.id = randomString.generate(6);
-    e.marks.tradable = false;
-    e.save();
-  });
-  return res.send("ok");
+app.post("/refresh", async (req, res) => {
+  const { refresh_token } = req.body;
+
+  if (refresh_token) {
+    try {
+      return res.json(await refreshToken(refresh_token));
+    } catch (e) {
+      console.log(e);
+      return res.status(400).send(e);
+    }
+  } else {
+    res.status(401).send();
+  }
+});
+
+app.post("/logout", async (req, res) => {
+  const { token } = req.body;
+
+  if (token) {
+    try {
+      await revokeToken(token);
+      return res.status(200).send();
+    } catch (e) {
+      console.log(e);
+      return res.status(400).send(e);
+    }
+  } else {
+    res.status(401).send();
+  }
 });
 
 app.post("/@me", async (req, res) => {
-  const token = req.body;
-  console.log(token);
+  const { token_type, access_token } = req.body;
+  console.log(req.body);
   const usuario = await axios.get("https://discord.com/api/users/@me", {
     headers: {
-      authorization: `${token.token_type} ${token.access_token}`,
+      authorization: `${token_type} ${access_token}`,
     },
   });
   return res.json(usuario.data);
 });
 
-const maxInterval = 12 * 60 * 1000;
+const maxInterval = 0.5 * 60 * 1000;
 
-const chanceInterval = 1 * 60 * 1000;
+const chanceInterval = process.env.DEVMODE
+  ? 24 * 60 * 60 * 1000
+  : 0.1 * 60 * 1000;
 
 setInterval(async () => {
   const now = new Date().getTime();
@@ -188,10 +205,9 @@ useClient().on("message", async (m) => {
   const lastPokemon = useLastPokemon().pokemon?.name.toLowerCase();
   if (messageIs(message, lastPokemon)) handleLastPokemon(m);
   else if (messageIs(message, "dex")) handleDex(m);
-  else if (messageStartsWith(message, "!battle")) handleBattle(m);
   else if (messageStartsWith(message, "trade")) handleTrade(m);
   else if (messageStartsWith(message, "mark")) mark(m);
-  else if (messageStartsWith(message, "unmark")) mark(m);
+  else if (messageStartsWith(message, "unmark")) unmark(m);
   else if (messageStartsWith(message, "accept")) acceptTrade(m);
   else if (messageStartsWith(message, "refuse")) refuseTrade(m);
 });
