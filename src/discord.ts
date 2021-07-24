@@ -31,7 +31,7 @@ export async function generateToken(code: string) {
   const obj = {
     code,
     grant_type: "authorization_code",
-    redirect_uri: `http://localhost:8080/oauth`,
+    redirect_uri: `${process.env.FRONTEND_URL}/oauth`,
     scope: "identify",
   };
 
