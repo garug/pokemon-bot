@@ -44,7 +44,7 @@ export const OwnedPokemonSchema = new Schema({
     ],
   },
   marks: {
-    tradable: Boolean,
+    tradable: { type: Boolean, default: false },
   },
   attributes: {
     hp: Number,

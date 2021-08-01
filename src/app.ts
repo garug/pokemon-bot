@@ -24,9 +24,7 @@ import handleBattle from "./messages/battle";
 import handleInfo from "./messages/info";
 import { mark, unmark } from "./messages/pokemon";
 import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
-import Pokemon from "./Pokemon";
 import useSocket from "./socket";
-import { v4 as uuid } from "uuid";
 import express, { json } from "express";
 import cors from "cors";
 import { activeBattles } from "./battle-manager";
@@ -55,10 +53,7 @@ app.get("/users", async (req, res) => {
 
 app.get("/users/:id", async (req, res) => {
   const { id } = req.params;
-  const pokemon = await MoreStrongPokemon.find(
-    { user: id },
-    "-_id name number total id created_at"
-  );
+  const pokemon = await MoreStrongPokemon.find({ user: id });
   return res.json({ pokemon });
 });
 
@@ -72,6 +67,25 @@ app.post("/battles", async (req, res) => {
   } else {
     return res.status(404).send();
   }
+});
+
+app.patch("/pokemon/:id/marks/tradable", async (req, res) => {
+  // TODO fazer autenticação
+  const pokemon = await OwnedPokemon.findOne({ id: req.params.id });
+
+  if (!pokemon) return res.status(204).send();
+
+  pokemon.marks.tradable = !pokemon.marks.tradable;
+  pokemon.save();
+
+  return res.send(pokemon.marks.tradable);
+});
+
+app.get("/pokemon/tradable", async (req, res) => {
+  // TODO retirar pokemon do próprio usuário da request
+  const pokemon = await MoreStrongPokemon.find({ "marks.tradable": true });
+
+  return res.json(pokemon);
 });
 
 app.post("/login", async (req, res) => {
@@ -122,7 +136,6 @@ app.post("/logout", async (req, res) => {
 
 app.post("/@me", async (req, res) => {
   const { token_type, access_token } = req.body;
-  console.log(req.body);
   const usuario = await axios.get("https://discord.com/api/users/@me", {
     headers: {
       authorization: `${token_type} ${access_token}`,
