@@ -144,7 +144,7 @@ app.post("/@me", async (req, res) => {
   return res.json(usuario.data);
 });
 
-const maxInterval = 10 * 1000;
+const maxInterval = 1 * 1000;
 
 const chanceInterval = process.env.DEVMODE
   ? 24 * 60 * 60 * 1000
