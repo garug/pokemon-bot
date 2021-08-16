@@ -24,7 +24,12 @@ import handleInfo from "./messages/info";
 import { mark, unmark } from "./messages/pokemon";
 import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
 import useSocket from "./socket";
-import express, { json } from "express";
+import express, {
+  ErrorRequestHandler,
+  json,
+  NextFunction,
+  RequestHandler,
+} from "express";
 import cors from "cors";
 import { activeBattles } from "./battle-manager";
 import qs from "qs";
@@ -48,6 +53,11 @@ const server = app
 useSocket(server);
 
 new Database().connect();
+
+const asyncHandler: (fn: RequestHandler) => RequestHandler =
+  (fn) => (req, res, next) => {
+    return Promise.resolve(fn(req, res, next)).catch(next);
+  };
 
 app.get("/", async (req, res) => {
   res.send();
@@ -113,7 +123,24 @@ app.post("/offers", async (req, res) => {
 app.post("/offers/:id/approval-status", async (req, res) => {
   const { id } = req.params as any;
   const { status } = req.body as any;
-  // approvalStatus(id, status);
+  const authorization = req.headers.authorization;
+
+  if (!authorization) return res.sendStatus(403);
+
+  const [user, offer] = await Promise.all([
+    fetchUser(authorization),
+    Offer.findOne({ id }),
+  ]);
+
+  if (!offer) {
+    return res.sendStatus(404);
+  }
+
+  if (offer.owner !== user.data.id) {
+    return res.sendStatus(401);
+  }
+
+  approvalStatus(offer, status);
 
   return res.sendStatus(201);
 });
@@ -194,13 +221,17 @@ app.post("/logout", async (req, res) => {
   }
 });
 
-app.post("/@me", async (req, res) => {
-  const { token_type, access_token } = req.body;
-  const usuario = await axios.get("https://discord.com/api/users/@me", {
+async function fetchUser(authorization: string) {
+  return axios.get("https://discord.com/api/users/@me", {
     headers: {
-      authorization: `${token_type} ${access_token}`,
+      authorization,
     },
   });
+}
+
+app.post("/@me", async (req, res) => {
+  const { token_type, access_token } = req.body;
+  const usuario = await fetchUser(`${token_type} ${access_token}`);
   return res.json(usuario.data);
 });
 

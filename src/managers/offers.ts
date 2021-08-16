@@ -1,4 +1,4 @@
-import Offer from "../models/Offer";
+import OfferModel, { Offer } from "../models/Offer";
 import OwnedPokemon from "../models/OwnedPokemon";
 
 interface CreateOffer {
@@ -13,7 +13,7 @@ interface CreateOffer {
 }
 
 export async function createOffer(creating: CreateOffer) {
-  return await Offer.create({
+  return await OfferModel.create({
     offeror: creating.offeror.id,
     owner: creating.owner.id,
     giving: [
@@ -29,11 +29,7 @@ export async function createOffer(creating: CreateOffer) {
   });
 }
 
-export async function approvalStatus(id: string, approved: boolean) {
-  const offer = await Offer.findOne({ id });
-
-  if (!offer) throw { name: "not-found", message: "Not found offer" };
-
+export async function approvalStatus(offer: Offer, approved: boolean) {
   if (approved) {
     const handleItem = async (item: any, user: string) => {
       if (item.pokemon) {
