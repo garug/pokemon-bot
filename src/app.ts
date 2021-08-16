@@ -111,10 +111,9 @@ app.post("/offers", async (req, res) => {
 });
 
 app.post("/offers/:id/approval-status", async (req, res) => {
-  // TODO verificar se usuário pode aceitar a offer
   const { id } = req.params as any;
   const { status } = req.body as any;
-  approvalStatus(id, status);
+  // approvalStatus(id, status);
 
   return res.sendStatus(201);
 });
@@ -172,7 +171,6 @@ app.post("/refresh", async (req, res) => {
     try {
       return res.json(await refreshToken(refresh_token));
     } catch (e) {
-      console.log(e);
       return res.status(400).send(e);
     }
   } else {
