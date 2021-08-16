@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import { createOffer } from "../managers/offers";
 import Offer from "../models/Offer";
 import OwnedPokemon from "../models/OwnedPokemon";
 
@@ -19,19 +20,15 @@ export default async function trade(m: Message) {
     return;
   }
 
-  const offer = await Offer.create({
-    offeror: m.author.id,
-    owner: retrievePokemon.user,
-    giving: [
-      {
-        pokemon: pokemon.id,
-      },
-    ],
-    retrieving: [
-      {
-        pokemon: retrievePokemon.id,
-      },
-    ],
+  const offer = await createOffer({
+    offeror: {
+      id: m.author.id,
+      pokemon_id: pokemon.id,
+    },
+    owner: {
+      id: retrievePokemon.user,
+      pokemon_id: retrievePokemon.id,
+    },
   });
 
   const msg = `${m.author} want trade ${pokemon.id} for ${retrievePokemon.id}. Type "accept/refuse ${offer.id}."`;
@@ -47,7 +44,6 @@ export async function acceptTrade(m: Message) {
   if (offer) {
     offer.giving.forEach(async (item) => {
       if (item.pokemon) {
-        console.log(item);
         await OwnedPokemon.updateOne(
           { id: item.pokemon },
           { user: offer.owner, "marks.tradable": false }

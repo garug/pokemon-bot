@@ -32,6 +32,9 @@ import MoreStrongPokemon from "./models/MoreStrongPokemon";
 import { currentInvites, acceptInvite } from "./invite-manager";
 import randomString from "randomstring";
 import SetCollection from "./Set";
+import { approvalStatus, createOffer } from "./managers/offers";
+import { partition } from "lodash";
+import Offer from "./models/Offer";
 
 const app = express();
 
@@ -73,6 +76,15 @@ app.post("/battles", async (req, res) => {
   }
 });
 
+app.get("/pokemon", async (req, res) => {
+  const { limit, user, name } = req.query as any;
+  const pokemon = await MoreStrongPokemon.find({
+    user,
+    name: { $regex: name },
+  }).limit(parseInt(limit));
+  return res.json({ pokemon });
+});
+
 app.patch("/pokemon/:id/marks/tradable", async (req, res) => {
   // TODO fazer autenticação
   const pokemon = await OwnedPokemon.findOne({ id: req.params.id });
@@ -90,6 +102,52 @@ app.get("/pokemon/tradable", async (req, res) => {
   const pokemon = await MoreStrongPokemon.find({ "marks.tradable": true });
 
   return res.json(pokemon);
+});
+
+app.post("/offers", async (req, res) => {
+  // TODO não permitir criar offers iguais
+  const offer = await createOffer(req.body);
+  return res.status(201).json(offer);
+});
+
+app.post("/offers/:id/approval-status", async (req, res) => {
+  // TODO verificar se usuário pode aceitar a offer
+  const { id } = req.params as any;
+  const { status } = req.body as any;
+  approvalStatus(id, status);
+
+  return res.sendStatus(201);
+});
+
+app.get("/offers", async (req, res) => {
+  const offers = await Offer.find({
+    $or: [{ owner: "154735184183296000" }, { offeror: "154735184183296000" }],
+  });
+  const allPokemon = offers
+    .flatMap((offer) => [...offer.retrieving, ...offer.giving])
+    .map((e) => e.pokemon);
+
+  const usedPokemon = await MoreStrongPokemon.find({ id: { $in: allPokemon } });
+
+  const returned = offers.map((offer) => {
+    const map = (arr: any[]) => {
+      return arr.map((p) => usedPokemon.find((p2) => p2.id === p.pokemon));
+    };
+
+    const obj = {
+      ...offer.toObject(),
+      retrievedPokemon: map(offer.retrieving)[0],
+      sentPokemon: map(offer.giving)[0],
+    } as any;
+
+    delete obj.retrieving;
+    delete obj.giving;
+    delete obj._id;
+
+    return obj;
+  });
+
+  return res.json(returned);
 });
 
 app.post("/login", async (req, res) => {

@@ -12,11 +12,11 @@
   "author": "garug",
   "license": "MIT",
   "dependencies": {
-    "@types/express": "^4.17.13",
     "axios": "^0.21.1",
     "cors": "^2.8.5",
     "discord.js": "^12.5.3",
     "express": "^4.17.1",
+    "lodash": "^4.17.21",
     "mongoose": "^5.12.14",
     "randomstring": "^1.2.1",
     "rxjs": "^7.2.0",
@@ -24,6 +24,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/lodash": "^4.14.172",
     "@types/randomstring": "^1.1.7",
     "@types/uuid": "^8.3.1",
     "dotenv": "^10.0.0",

@@ -17,7 +17,6 @@ export async function mark(m: Message) {
   if (pokemon) {
     pokemon.marks.tradable = true;
     pokemon.save();
-    console.log(pokemon);
     m.channel.send(`Pokemon "${pokemon.id}" is available for trade.`);
   } else {
     m.channel.send(`${m.author} something wrong in your command...`);
