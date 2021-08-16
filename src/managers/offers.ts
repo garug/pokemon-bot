@@ -33,6 +33,11 @@ export async function approvalStatus(offer: Offer, approved: boolean) {
   if (approved) {
     const handleItem = async (item: any, user: string) => {
       if (item.pokemon) {
+        OfferModel.deleteMany({
+          id: { $ne: offer.id },
+          "retrieving.pokemon": { $elemMatch: item.pokemon },
+          "giving.pokemon": { $elemMatch: item.pokemon },
+        });
         await OwnedPokemon.updateOne(
           { id: item.pokemon },
           { user, "marks.tradable": false }
