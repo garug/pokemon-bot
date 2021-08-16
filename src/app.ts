@@ -146,8 +146,14 @@ app.post("/offers/:id/approval-status", async (req, res) => {
 });
 
 app.get("/offers", async (req, res) => {
+  const authorization = req.headers.authorization;
+
+  if (!authorization) return res.sendStatus(403);
+
+  const { data: user } = await fetchUser(authorization);
+
   const offers = await Offer.find({
-    $or: [{ owner: "154735184183296000" }, { offeror: "154735184183296000" }],
+    $or: [{ owner: user.id }, { offeror: user.id }],
   });
   const allPokemon = offers
     .flatMap((offer) => [...offer.retrieving, ...offer.giving])
