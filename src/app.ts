@@ -87,12 +87,27 @@ app.post("/battles", async (req, res) => {
 });
 
 app.get("/pokemon", async (req, res) => {
-  const { limit, user, name } = req.query as any;
-  const pokemon = await MoreStrongPokemon.find({
-    user,
-    name: { $regex: name },
-  }).limit(parseInt(limit));
-  return res.json({ pokemon });
+  const { limit, user, name, page } = req.query as any;
+
+  const filters: any = {};
+  let usedLimit = parseInt(limit);
+
+  if (user) {
+    filters.user = user;
+  }
+
+  if (name) {
+    filters.name = { $regex: name };
+  }
+
+  if (page && !limit) {
+    usedLimit = 10;
+  }
+
+  const pokemon = await MoreStrongPokemon.find(filters)
+    .skip((page - 1) * usedLimit)
+    .limit(usedLimit);
+  return res.json(pokemon);
 });
 
 app.patch("/pokemon/:id/marks/tradable", async (req, res) => {
