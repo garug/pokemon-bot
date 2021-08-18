@@ -1,11 +1,8 @@
-import { DMChannel, Invite, MessageEmbed, User } from "discord.js";
+import { MessageEmbed } from "discord.js";
 import axios from "axios";
 
 import Database from "./MongoDatabase";
 import OwnedPokemon from "./models/OwnedPokemon";
-import { generateNumber, randomPokemon } from "./lib/utils";
-import Battle, { Player } from "./Battle";
-import Move, { moves } from "./lib/moves";
 import handleLastPokemon, {
   lastPokemonRunAway,
   updateLastPokemon,
@@ -19,26 +16,15 @@ import {
   useClient,
 } from "./discord";
 import handleDex from "./messages/dex";
-import handleBattle from "./messages/battle";
-import handleInfo from "./messages/info";
 import { mark, unmark } from "./messages/pokemon";
 import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
 import useSocket from "./socket";
-import express, {
-  ErrorRequestHandler,
-  json,
-  NextFunction,
-  RequestHandler,
-} from "express";
+import express, { json, RequestHandler } from "express";
 import cors from "cors";
-import { activeBattles } from "./battle-manager";
-import qs from "qs";
 import MoreStrongPokemon from "./models/MoreStrongPokemon";
 import { currentInvites, acceptInvite } from "./invite-manager";
-import randomString from "randomstring";
 import SetCollection from "./Set";
 import { approvalStatus, createOffer } from "./managers/offers";
-import { partition } from "lodash";
 import Offer from "./models/Offer";
 
 const app = express();
@@ -48,7 +34,17 @@ const port = process.env.PORT || 8081;
 const server = app
   .use(cors())
   .use(json())
-  .listen(port, () => console.log(`Server online on port ${port}`));
+  .listen(port, () => {
+    OwnedPokemon.updateMany(
+      {
+        "marks.tradable": { $ne: true },
+      },
+      {
+        "marks.tradable": false,
+      }
+    );
+    console.log(`Server online on port ${port}`);
+  });
 
 useSocket(server);
 
