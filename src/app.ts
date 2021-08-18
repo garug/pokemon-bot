@@ -35,25 +35,12 @@ const server = app
   .use(cors())
   .use(json())
   .listen(port, () => {
-    OwnedPokemon.updateMany(
-      {
-        "marks.tradable": { $ne: true },
-      },
-      {
-        "marks.tradable": false,
-      }
-    );
     console.log(`Server online on port ${port}`);
   });
 
 useSocket(server);
 
 new Database().connect();
-
-const asyncHandler: (fn: RequestHandler) => RequestHandler =
-  (fn) => (req, res, next) => {
-    return Promise.resolve(fn(req, res, next)).catch(next);
-  };
 
 app.get("/", async (req, res) => {
   res.send();
