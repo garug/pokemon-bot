@@ -31,7 +31,7 @@ export default async function handleDex(m: Message) {
   const uniquePokemon = [...new Set(ownedPokemon.map((p) => p.name))];
   const strongest = [...ownedPokemon].splice(0, 6).map((e) => e.name);
   const reply = new MessageEmbed().setColor("#f39c12").setDescription(
-    `${m.author} dex: ${uniquePokemon.length}/251
+    `${m.author} dex: ${uniquePokemon.length}/386
 
     Strongest pokemon: ${strongest}
     
