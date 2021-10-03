@@ -13,7 +13,7 @@ interface CreateOffer {
 }
 
 export async function createOffer(creating: CreateOffer) {
-  return await OfferModel.create({
+  const offer = {
     offeror: creating.offeror.id,
     owner: creating.owner.id,
     giving: [
@@ -26,7 +26,9 @@ export async function createOffer(creating: CreateOffer) {
         pokemon: creating.owner.pokemon_id,
       },
     ],
-  });
+  };
+
+  return await OfferModel.create(offer);
 }
 
 export async function approvalStatus(offer: Offer, approved: boolean) {
