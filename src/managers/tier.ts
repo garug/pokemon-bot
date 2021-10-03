@@ -1,4 +1,3 @@
-import InfoPokemon, { InfoPokemonSchema } from "../models/InfoPokemon";
 import OwnedPokemon from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 
