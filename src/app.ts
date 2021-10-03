@@ -26,6 +26,7 @@ import { currentInvites, acceptInvite } from "./invite-manager";
 import SetCollection from "./Set";
 import { approvalStatus, createOffer } from "./managers/offers";
 import Offer from "./models/Offer";
+import { updateTrainers } from "./managers/tier";
 
 const app = express();
 
@@ -43,6 +44,7 @@ useSocket(server);
 new Database().connect();
 
 app.get("/", async (req, res) => {
+  updateTrainers();
   res.send();
 });
 

@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { useChannel } from "../discord";
 import { generateNumber } from "../lib/utils";
 import OwnedPokemon from "../models/OwnedPokemon";
+import Prestige from "../models/Prestige";
 
 let lastPokemon = {
   date: new Date(),
@@ -92,6 +93,11 @@ export default async function handleLastPokemon(m: Message) {
     attributes: copy,
     level: 0,
   });
+
+  Prestige.updateOne(
+    { user: m.author.id, pokemon: number },
+    { $inc: { value: 200 } }
+  );
 
   m.channel.send(reply);
 }
