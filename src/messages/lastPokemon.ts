@@ -94,7 +94,7 @@ export default async function handleLastPokemon(m: Message) {
     level: 0,
   });
 
-  Prestige.updateOne(
+  await Prestige.updateOne(
     { user: m.author.id, pokemon: number },
     { $inc: { value: 200 } }
   );
