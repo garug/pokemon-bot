@@ -70,8 +70,6 @@ export async function updateTrainers() {
     },
   ]);
 
-  await Prestige.deleteMany({}, () => console.log("deletou"));
-
   const savedPrestige = initialPrestige.map((p) => {
     return {
       value: p.value,
