@@ -27,6 +27,7 @@ import SetCollection from "./Set";
 import { approvalStatus, createOffer } from "./managers/offers";
 import Offer from "./models/Offer";
 import { handleTraining } from "./messages/training";
+import { updateTrainers } from "./managers/tier";
 
 const app = express();
 
@@ -44,6 +45,7 @@ useSocket(server);
 new Database().connect();
 
 app.get("/", async (req, res) => {
+  updateTrainers();
   res.send();
 });
 
@@ -240,7 +242,7 @@ app.post("/@me", async (req, res) => {
   return res.json(usuario.data);
 });
 
-const maxInterval = 12 * 60 * 1000;
+const maxInterval = 4 * 60 * 1000;
 
 const chanceInterval = process.env.DEVMODE
   ? 24 * 60 * 60 * 1000
