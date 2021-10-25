@@ -7,9 +7,7 @@ export default class MongoDatabase {
     console.log("Connecting to database...");
     mongoose
       .connect(uri, {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useUnifiedTopology: true,
+        autoIndex: true
       })
       .then(() => console.log("Database Connected!"))
       .catch((error) => {

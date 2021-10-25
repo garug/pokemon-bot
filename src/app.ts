@@ -26,6 +26,8 @@ import { currentInvites, acceptInvite } from "./invite-manager";
 import SetCollection from "./Set";
 import { approvalStatus, createOffer } from "./managers/offers";
 import Offer from "./models/Offer";
+import { handleTraining } from "./messages/training";
+import { updateTrainers } from "./managers/tier";
 
 const app = express();
 
@@ -43,6 +45,7 @@ useSocket(server);
 new Database().connect();
 
 app.get("/", async (req, res) => {
+  updateTrainers();
   res.send();
 });
 
@@ -226,7 +229,7 @@ app.post("/logout", async (req, res) => {
 });
 
 async function fetchUser(authorization: string) {
-  return axios.get("https://discord.com/api/users/@me", {
+  return axios.get<any>("https://discord.com/api/users/@me", {
     headers: {
       authorization,
     },
@@ -269,7 +272,7 @@ setInterval(async () => {
   const sortedNumber = Math.floor(Math.random() * (total - 1)) + 1;
   const sortedPokemon =
     possiblePokemon[probabilities.findIndex((n) => n > sortedNumber)];
-  const pokemon = await axios.get(
+  const pokemon = await axios.get<any>(
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.number}/`
   );
 
@@ -281,7 +284,7 @@ setInterval(async () => {
     .setDescription("Who's that pokemon?")
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
-  useChannel().send(message);
+  useChannel().send({ embeds: [message] });
 }, chanceInterval);
 
 function devMessage(msg: string) {
@@ -298,7 +301,7 @@ function messageStartsWith(message: string, startsWith: string) {
   return message.startsWith(m);
 }
 
-useClient().on("message", async (m) => {
+useClient().on("messageCreate", async (m) => {
   const message = m.content.toLowerCase();
   const lastPokemon = useLastPokemon().pokemon?.name.toLowerCase();
   if (messageIs(message, lastPokemon)) handleLastPokemon(m);
@@ -308,4 +311,5 @@ useClient().on("message", async (m) => {
   else if (messageStartsWith(message, "unmark")) unmark(m);
   else if (messageStartsWith(message, "accept")) acceptTrade(m);
   else if (messageStartsWith(message, "refuse")) refuseTrade(m);
+  else if (messageStartsWith(message, "tt")) handleTraining(m);
 });

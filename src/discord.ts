@@ -1,8 +1,10 @@
-import { Client, TextChannel } from "discord.js";
+import { Client, Intents, TextChannel } from "discord.js";
 import axios from "axios";
 import qs from "qs";
 
-const client = new Client();
+const client = new Client({
+  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+});
 
 export function useClient() {
   return client;
@@ -12,7 +14,9 @@ export function useChannel() {
   return client.channels.cache.get("855838535503970344") as TextChannel;
 }
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN).then(() => {
+  console.log("Logged in!");
+});
 
 async function defaultRequest(obj: any, url?: string) {
   url = url ? url : "https://discord.com/api/oauth2/token";

@@ -1,5 +1,4 @@
 import { Message, MessageEmbed } from "discord.js";
-import { v4 as uuid } from "uuid";
 import { useChannel } from "../discord";
 import { generateNumber } from "../lib/utils";
 import OwnedPokemon from "../models/OwnedPokemon";
@@ -44,7 +43,7 @@ export async function lastPokemonRunAway() {
     .setColor("#f39c12")
     .setDescription(`Oh no!! The ${lastPokemon.pokemon.name} run away!`);
 
-  useChannel().send(message);
+  useChannel().send({ embeds: [message] });
 
   updateLastPokemon();
 
@@ -96,8 +95,9 @@ export default async function handleLastPokemon(m: Message) {
 
   await Prestige.updateOne(
     { user: m.author.id, pokemon: number },
-    { $inc: { value: 200 } }
+    { $inc: { value: 200 } },
+    { upsert: true }
   );
 
-  m.channel.send(reply);
+  m.channel.send({ embeds: [reply] });
 }

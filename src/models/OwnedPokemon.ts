@@ -1,4 +1,5 @@
-import { Document, model, Schema } from "mongoose";
+import { Document, model, Schema, SchemaTypes } from "mongoose";
+import { sum, values } from "lodash";
 import { generate } from "randomstring";
 
 export interface OwnedPokemon extends Document {
@@ -13,13 +14,32 @@ export interface OwnedPokemon extends Document {
   marks: {
     tradable: boolean;
   };
-  attributes: {
-    hp: number;
-    attack: number;
-    defense: number;
-    sp_attack: number;
-    sp_defense: number;
-    speed: number;
+  attributes: Attributes;
+  trainings: {
+    user: string;
+    attributes: Attributes;
+    created_at: Date;
+  }[];
+  total: number;
+}
+
+export interface Attributes {
+  hp: number;
+  attack: number;
+  defense: number;
+  sp_attack: number;
+  sp_defense: number;
+  speed: number;
+}
+
+export function useAttributes() {
+  return {
+    hp: Number,
+    attack: Number,
+    defense: Number,
+    sp_attack: Number,
+    sp_defense: Number,
+    speed: Number,
   };
 }
 
@@ -46,14 +66,26 @@ export const OwnedPokemonSchema = new Schema({
   marks: {
     tradable: { type: Boolean, default: false },
   },
-  attributes: {
-    hp: Number,
-    attack: Number,
-    defense: Number,
-    sp_attack: Number,
-    sp_defense: Number,
-    speed: Number,
-  },
+  attributes: useAttributes(),
+  trainings: [
+    {
+      user: String,
+      attributes: useAttributes(),
+      created_at: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+});
+
+OwnedPokemonSchema.virtual("total").get(function (this: OwnedPokemon) {
+  const all = [
+    ...values(this.attributes),
+    // ...this.trainings.flatMap((t) => values(t.attributes)),
+  ];
+
+  return sum(all);
 });
 
 export default model<OwnedPokemon>("OwnedPokemon", OwnedPokemonSchema);
