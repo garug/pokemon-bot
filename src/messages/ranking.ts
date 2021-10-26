@@ -22,14 +22,14 @@ export async function handleRanking(m: Message) {
 
   let meString;
   if (me) {
-    meString = `You are ranked ${me.index + 1} - ${me.value}`;
+    meString = `You are ranked ${me.index} - ${me.value}`;
   } else {
     meString = "You haven't ranked this pokemon yet.";
   }
 
   const rankingString = ranking
-    .map((r) => `${r.index + 1}. <@${r.user}> - ${r.value}\n`)
+    .map((r) => `${r.index}. <@${r.user}> - ${r.value}\n`)
     .join("");
 
-  return m.reply(`Ranking:\n${rankingString}\n\n Your position: ${meString}`);
+  return m.reply(`Ranking:\n${rankingString}\n Your position: ${meString}`);
 }
