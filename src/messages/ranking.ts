@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Message } from "discord.js";
 import RankingTrainers from "../models/views/RankingTrainers";
 
@@ -8,10 +9,22 @@ export async function handleRanking(m: Message) {
     return m.reply("You need to specify a pokemon to get the ranking of.");
   }
 
-  const pokemon = parseInt(p);
-  if (pokemon === NaN) {
-    return m.reply("You need to specify a valid pokemon.");
+  let pokemon = parseInt(p);
+
+  if (isNaN(pokemon)) {
+    console.log("passou aqui1");
+    const pokeApi = await axios.get<any>(
+      `https://pokeapi.co/api/v2/pokemon/${p}/`
+    );
+
+    if (!pokeApi.data.id) {
+      return m.reply("You need to specify a valid pokemon.");
+    } else {
+      pokemon = pokeApi.data.id;
+    }
   }
+
+  console.log(pokemon);
 
   const [me, ranking] = await Promise.all([
     RankingTrainers.findOne({ pokemon, user: m.author.id }),
