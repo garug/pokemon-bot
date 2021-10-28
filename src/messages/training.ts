@@ -10,6 +10,12 @@ import OwnedPokemon from "../models/OwnedPokemon";
 import Training from "../models/Trainings";
 
 export async function handleTraining(m: Message) {
+  if (m.channel.id !== "891998683082657803") {
+    return m.reply(
+      `This command is only available in the <#891998683082657803> channel.`
+    );
+  }
+
   const [_, pokemon, time] = m.content.split(" ");
 
   const activeTrainings = await Training.find({ user: m.author.id });

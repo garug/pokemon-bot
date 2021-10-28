@@ -5,6 +5,12 @@ import RankingTrainers from "../models/views/RankingTrainers";
 export async function handleRanking(m: Message) {
   const [_, p] = m.content.split(" ");
 
+  if (m.channel.id !== "891998683082657803") {
+    return m.reply(
+      `This command is only available in the <#891998683082657803> channel.`
+    );
+  }
+
   if (!p) {
     return m.reply("You need to specify a pokemon to get the ranking of.");
   }
@@ -12,7 +18,6 @@ export async function handleRanking(m: Message) {
   let pokemon = parseInt(p);
 
   if (isNaN(pokemon)) {
-    console.log("passou aqui1");
     const pokeApi = await axios.get<any>(
       `https://pokeapi.co/api/v2/pokemon/${p}/`
     );
@@ -24,14 +29,10 @@ export async function handleRanking(m: Message) {
     }
   }
 
-  console.log(pokemon);
-
   const [me, ranking] = await Promise.all([
     RankingTrainers.findOne({ pokemon, user: m.author.id }),
     RankingTrainers.find({ pokemon }).limit(3),
   ]);
-
-  console.log(me, ranking);
 
   let meString;
   if (me) {
