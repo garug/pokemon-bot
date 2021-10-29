@@ -1,5 +1,5 @@
 import { Document, model, Schema } from "mongoose";
-import { OwnedPokemon, OwnedPokemonSchema } from "./OwnedPokemon";
+import { OwnedPokemon, OwnedPokemonSchema } from "../OwnedPokemon";
 
 export interface MoreStrongPokemon extends OwnedPokemon {}
 

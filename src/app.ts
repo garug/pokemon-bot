@@ -21,7 +21,7 @@ import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
 import useSocket from "./socket";
 import express, { json, RequestHandler } from "express";
 import cors from "cors";
-import MoreStrongPokemon from "./models/MoreStrongPokemon";
+import MoreStrongPokemon from "./models/views/MoreStrongPokemon";
 import { currentInvites, acceptInvite } from "./invite-manager";
 import SetCollection from "./Set";
 import { approvalStatus, createOffer } from "./managers/offers";

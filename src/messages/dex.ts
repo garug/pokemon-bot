@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from "discord.js";
-import MoreStrongPokemon from "../models/MoreStrongPokemon";
+import MoreStrongPokemon from "../models/views/MoreStrongPokemon";
 
 export default async function handleDex(m: Message) {
   const ownedPokemon = await MoreStrongPokemon.find({
