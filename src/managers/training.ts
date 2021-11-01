@@ -9,10 +9,10 @@ export interface TrainingTiming {
 }
 
 export const availableTrainings: TrainingTiming[] = [
-  { hours: 3, mod: 0.18 },
-  { hours: 8, mod: 0.41 },
-  { hours: 12, mod: 1 },
-  { hours: 24, mod: 1.8 },
+  { hours: 3, mod: 0.25 }, // 3,75
+  { hours: 8, mod: 0.43 }, // 3.225
+  { hours: 12, mod: 0.726 }, // 2.7225
+  { hours: 24, mod: 1.2 }, // 2.25
 ];
 
 export const MAX_ACTIVE_TRAININGS = 3;

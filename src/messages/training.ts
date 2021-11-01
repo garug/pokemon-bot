@@ -31,6 +31,14 @@ export async function handleTraining(m: Message) {
     return m.reply("Finished all trainings");
   }
 
+  // Remove training
+  if (time === "remove") {
+    const training = activeTrainings.find((t) => t.pokemon === pokemon);
+    if (!training) return m.reply("No active training found");
+    await training.remove();
+    return m.reply("Removed training");
+  }
+
   // Only message
   if (!pokemon && !time) {
     const textTrainings = Array.from({ length: MAX_ACTIVE_TRAININGS })
