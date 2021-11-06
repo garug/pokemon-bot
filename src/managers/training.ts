@@ -2,6 +2,8 @@ import axios from "axios";
 import { OwnedPokemon } from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 import Training from "../models/Trainings";
+import RankingTrainers from "../models/views/RankingTrainers";
+import { availableTiers } from "./tier";
 
 export interface TrainingTiming {
   hours: number;
@@ -52,7 +54,22 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   const defaultPokemon = await axios.get<any>(
     `https://pokeapi.co/api/v2/pokemon/${pokemon.number}/`
   );
-  const modTrainer = 1.5;
+
+  const countTrainers = RankingTrainers.count({
+    pokemon: pokemon.number,
+  });
+
+  const findMe = RankingTrainers.findOne({
+    user: pokemon.user,
+    pokemon: pokemon.number,
+  });
+
+  const [total, me] = await Promise.all([countTrainers, findMe]);
+
+  const tierTrainer =
+    availableTiers.find((t) => me && t.when((me.index - 1) / total)) ||
+    availableTiers[availableTiers.length - 1];
+
   const modPokemon = 0.5;
 
   function getStats(name: string) {
@@ -61,7 +78,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   }
 
   function applyValue(value: number) {
-    return ((value / 2) * modTrainer * modPokemon * mod) / 100;
+    return ((value / 2) * tierTrainer.mod_trainer * modPokemon * mod) / 100;
   }
 
   const computedTraining = {
