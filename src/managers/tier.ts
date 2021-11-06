@@ -3,7 +3,7 @@ import Prestige from "../models/Prestige";
 
 export interface Tier {
   name: TierName;
-  value: number;
+  when: (value: number) => boolean;
   mod_pokemon: number;
   mod_trainer: number;
 }
@@ -11,14 +11,54 @@ export interface Tier {
 export type TierName = "SS" | "S" | "A" | "B" | "C" | "D" | "E" | "F";
 
 export const availableTiers: Tier[] = [
-  { name: "SS", value: 1, mod_pokemon: 0.05, mod_trainer: 5 },
-  { name: "S", value: 2, mod_pokemon: 0.1, mod_trainer: 3 },
-  { name: "A", value: 7, mod_pokemon: 0.25, mod_trainer: 2 },
-  { name: "B", value: 10, mod_pokemon: 0.5, mod_trainer: 1.5 },
-  { name: "C", value: 20, mod_pokemon: 0.8, mod_trainer: 1.25 },
-  { name: "D", value: 30, mod_pokemon: 1, mod_trainer: 1 },
-  { name: "E", value: 20, mod_pokemon: 1.25, mod_trainer: 0.8 },
-  { name: "F", value: 10, mod_pokemon: 1.5, mod_trainer: 0.5 },
+  {
+    name: "SS",
+    when: (value) => value > 0 && value <= 0.01,
+    mod_pokemon: 0.05,
+    mod_trainer: 5,
+  },
+  {
+    name: "S",
+    when: (value) => value > 0.01 && value <= 0.03,
+    mod_pokemon: 0.1,
+    mod_trainer: 3,
+  },
+  {
+    name: "A",
+    when: (value) => value > 0.03 && value <= 0.1,
+    mod_pokemon: 0.25,
+    mod_trainer: 2,
+  },
+  {
+    name: "B",
+    when: (value) => value > 0.1 && value <= 0.2,
+    mod_pokemon: 0.5,
+    mod_trainer: 1.5,
+  },
+  {
+    name: "C",
+    when: (value) => value > 0.2 && value <= 0.4,
+    mod_pokemon: 0.8,
+    mod_trainer: 1.25,
+  },
+  {
+    name: "D",
+    when: (value) => value > 0.4 && value <= 0.65,
+    mod_pokemon: 1,
+    mod_trainer: 1,
+  },
+  {
+    name: "E",
+    when: (value) => value > 0.65 && value <= 0.875,
+    mod_pokemon: 1.25,
+    mod_trainer: 0.8,
+  },
+  {
+    name: "F",
+    when: (value) => value > 0.875,
+    mod_pokemon: 1.5,
+    mod_trainer: 0.5,
+  },
 ];
 
 const fnList = (list: any[], pList: any[]) => {
