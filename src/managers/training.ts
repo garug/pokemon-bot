@@ -67,6 +67,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   const computedTraining = {
     user: pokemon.user,
     created_at: new Date(),
+    mod,
     attributes: {
       hp: applyValue(getStats("hp") + pokemon.attributes.hp),
       attack: applyValue(getStats("attack") + pokemon.attributes.attack),

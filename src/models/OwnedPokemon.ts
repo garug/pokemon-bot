@@ -17,6 +17,7 @@ export interface OwnedPokemon extends Document {
   attributes: Attributes;
   trainings: {
     user: string;
+    mod: number;
     attributes: Attributes;
     created_at: Date;
   }[];
@@ -70,6 +71,7 @@ export const OwnedPokemonSchema = new Schema({
   trainings: [
     {
       user: String,
+      mod: Number,
       attributes: useAttributes(),
       created_at: {
         type: Date,
