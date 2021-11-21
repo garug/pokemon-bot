@@ -1,5 +1,3 @@
-import { head } from "lodash";
-import { ConnectableObservable } from "rxjs";
 import InfoPokemon from "../models/InfoPokemon";
 import OwnedPokemon from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
