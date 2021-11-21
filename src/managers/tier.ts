@@ -1,9 +1,17 @@
-import OwnedPokemon from "../models/OwnedPokemon";
+import InfoPokemon from "../models/InfoPokemon";
+import OwnedPokemon, {
+  OwnedPokemon as TypeOwnedPokemon,
+} from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
+import MoreStrongPokemon from "../models/views/MoreStrongPokemon";
 
-export interface Tier {
-  name: TierName;
+export interface BasicTier {
+  order: number;
+  name: string;
   value: number;
+}
+export interface Tier extends BasicTier {
+  when: (value: number) => boolean;
   mod_pokemon: number;
   mod_trainer: number;
 }
@@ -11,19 +19,75 @@ export interface Tier {
 export type TierName = "SS" | "S" | "A" | "B" | "C" | "D" | "E" | "F";
 
 export const availableTiers: Tier[] = [
-  { name: "SS", value: 1, mod_pokemon: 0.05, mod_trainer: 5 },
-  { name: "S", value: 2, mod_pokemon: 0.1, mod_trainer: 3 },
-  { name: "A", value: 7, mod_pokemon: 0.25, mod_trainer: 2 },
-  { name: "B", value: 10, mod_pokemon: 0.5, mod_trainer: 1.5 },
-  { name: "C", value: 20, mod_pokemon: 0.8, mod_trainer: 1.25 },
-  { name: "D", value: 30, mod_pokemon: 1, mod_trainer: 1 },
-  { name: "E", value: 20, mod_pokemon: 1.25, mod_trainer: 0.8 },
-  { name: "F", value: 10, mod_pokemon: 1.5, mod_trainer: 0.5 },
+  {
+    order: 0,
+    name: "SS",
+    value: 0.01,
+    when: (value) => value > 0 && value <= 0.01,
+    mod_pokemon: 0.05,
+    mod_trainer: 5,
+  },
+  {
+    order: 1,
+    name: "S",
+    value: 0.02,
+    when: (value) => value > 0.01 && value <= 0.03,
+    mod_pokemon: 0.1,
+    mod_trainer: 3,
+  },
+  {
+    order: 2,
+    name: "A",
+    value: 0.07,
+    when: (value) => value > 0.03 && value <= 0.1,
+    mod_pokemon: 0.25,
+    mod_trainer: 2,
+  },
+  {
+    order: 3,
+    name: "B",
+    value: 0.1,
+    when: (value) => value > 0.1 && value <= 0.2,
+    mod_pokemon: 0.5,
+    mod_trainer: 1.5,
+  },
+  {
+    order: 4,
+    name: "C",
+    value: 0.2,
+    when: (value) => value > 0.2 && value <= 0.4,
+    mod_pokemon: 0.8,
+    mod_trainer: 1.25,
+  },
+  {
+    order: 5,
+    name: "D",
+    value: 0.25,
+    when: (value) => value > 0.4 && value <= 0.65,
+    mod_pokemon: 1,
+    mod_trainer: 1,
+  },
+  {
+    order: 6,
+    name: "E",
+    value: 0.225,
+    when: (value) => value > 0.65 && value <= 0.875,
+    mod_pokemon: 1.25,
+    mod_trainer: 0.8,
+  },
+  {
+    order: 7,
+    name: "F",
+    value: 0.125,
+    when: (value) => value > 0.875,
+    mod_pokemon: 1.5,
+    mod_trainer: 0.5,
+  },
 ];
 
-const fnList = (list: any[], pList: any[]) => {
+export const fnList = (list: any[], pList: any[]) => {
   if (list.length < pList.length) {
-    return pList.map((_, i) => list[i]);
+    return pList.filter((_, i) => list[i]).map((_, i) => [list[i]]);
   }
 
   const state = {
@@ -39,8 +103,17 @@ const fnList = (list: any[], pList: any[]) => {
     },
   };
 
+  let pointer = 0;
   while (state.minElements > list.length) {
-    state.chuncks = state.chuncks.map((e) => e - 1 || 1);
+    if (state.chuncks[pointer] - 1 > 1) {
+      state.chuncks[pointer]--;
+    }
+
+    if (pointer === state.chuncks.length - 1) {
+      pointer = 0;
+    } else {
+      pointer++;
+    }
   }
 
   return state.payback;
@@ -87,4 +160,74 @@ export async function updateTrainers() {
   //   const savedOf = saved.filter((s) => s.pokemon === info.number);
   //   console.log(savedOf);
   // });
+}
+
+export async function updatePokemon() {
+  const allPoke = await MoreStrongPokemon.aggregate([
+    {
+      $group: {
+        _id: "$number",
+        name: {
+          $first: "$name",
+        },
+        arr: {
+          $push: {
+            total: "$total",
+          },
+        },
+      },
+    },
+  ]);
+
+  const updates = allPoke.map((p) => {
+    const fn = fnList(
+      p.arr,
+      availableTiers.map((t) => t.value)
+    );
+
+    const tiers = availableTiers
+      .filter((_, index) => fn[index])
+      .map((t, index) => ({
+        order: index,
+        tier: t.name,
+        value: fn[index][fn[index].length - 1].total,
+      }));
+
+    return InfoPokemon.updateOne(
+      {
+        number: p._id,
+      },
+      {
+        $set: {
+          tiers,
+        },
+      },
+      { upsert: true }
+    );
+  });
+
+  await Promise.all(updates);
+}
+
+export async function findMyTier(pokemon: TypeOwnedPokemon): Promise<Tier> {
+  const infoPokemon = await InfoPokemon.findOne({
+    number: pokemon.number,
+  });
+
+  const valid =
+    infoPokemon && infoPokemon.tiers.find((t) => pokemon.total >= t.value);
+
+  if (valid) {
+    const tier = availableTiers.find((t) => t.name === valid.name);
+
+    if (!tier) throw new Error("Tier not found of valid info");
+
+    return tier;
+  } else if (!infoPokemon) {
+    return availableTiers[0];
+  } else if (infoPokemon.tiers.length - 1 >= 0) {
+    return availableTiers[infoPokemon.tiers.length];
+  } else {
+    return availableTiers[0];
+  }
 }

@@ -1,6 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
 import { useChannel } from "../discord";
 import { generateNumber } from "../lib/utils";
+import { findMyTier } from "../managers/tier";
 import OwnedPokemon from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 
@@ -19,22 +20,6 @@ export function updateLastPokemon(pokemon?: any) {
     pokemon,
   };
 }
-
-const whatIsMyGrade = (number: number) => {
-  if (number < 1) {
-    return "E";
-  } else if (number < 1.15) {
-    return "D";
-  } else if (number < 1.3) {
-    return "C";
-  } else if (number < 1.45) {
-    return "B";
-  } else if (number < 1.6) {
-    return "A";
-  } else {
-    return "S";
-  }
-};
 
 export async function lastPokemonRunAway() {
   if (!lastPokemon.pokemon) return false;
@@ -65,26 +50,14 @@ export default async function handleLastPokemon(m: Message) {
     return acc;
   }, {});
 
-  let total = 0;
-  let totalCopy = 0;
   const copy = {} as any;
   Object.keys(attributes).forEach((a) => {
     copy[a] = generateNumber(attributes[a]);
-    total += attributes[a];
-    totalCopy += copy[a];
   });
-
-  const rank = totalCopy / total;
-
-  const reply = new MessageEmbed()
-    .setColor("#f39c12")
-    .setDescription(
-      `${m.author} caught a ${name}! Class ${whatIsMyGrade(rank)}!`
-    );
 
   updateLastPokemon();
 
-  await OwnedPokemon.create({
+  const createdPokemon = await OwnedPokemon.create({
     number,
     name,
     user: m.author.id,
@@ -98,6 +71,12 @@ export default async function handleLastPokemon(m: Message) {
     { $inc: { value: 200 } },
     { upsert: true }
   );
+
+  const rank = (await findMyTier(createdPokemon)).name;
+
+  const reply = new MessageEmbed()
+    .setColor("#f39c12")
+    .setDescription(`${m.author} caught a ${name}! Class ${rank}!`);
 
   m.channel.send({ embeds: [reply] });
 }

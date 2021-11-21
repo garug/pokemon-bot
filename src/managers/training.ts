@@ -1,7 +1,10 @@
 import axios from "axios";
+import InfoPokemon from "../models/InfoPokemon";
 import { OwnedPokemon } from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 import Training from "../models/Trainings";
+import RankingTrainers from "../models/views/RankingTrainers";
+import { availableTiers, findMyTier } from "./tier";
 
 export interface TrainingTiming {
   hours: number;
@@ -52,8 +55,25 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   const defaultPokemon = await axios.get<any>(
     `https://pokeapi.co/api/v2/pokemon/${pokemon.number}/`
   );
-  const modTrainer = 1.5;
-  const modPokemon = 0.5;
+
+  const countTrainers = RankingTrainers.count({
+    pokemon: pokemon.number,
+  });
+
+  const findMe = RankingTrainers.findOne({
+    user: pokemon.user,
+    pokemon: pokemon.number,
+  });
+
+  const [total, me] = await Promise.all([countTrainers, findMe]);
+
+  const tierTrainer =
+    availableTiers.find((t) => me && t.when((me.index - 1) / total)) ||
+    availableTiers[availableTiers.length - 1];
+
+  const tierPokemon =
+    await findMyTier(pokemon) ||
+    availableTiers[availableTiers.length - 1];
 
   function getStats(name: string) {
     return defaultPokemon.data.stats.find((s: any) => s.stat.name === name)
@@ -61,6 +81,9 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   }
 
   function applyValue(value: number) {
+    const modTrainer = tierTrainer.mod_trainer;
+    const modPokemon = tierPokemon.mod_pokemon;
+
     return ((value / 2) * modTrainer * modPokemon * mod) / 100;
   }
 
@@ -89,7 +112,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     Training.deleteOne({ pokemon: pokemon.id }),
     await Prestige.updateOne(
       { user: pokemon.user, pokemon: pokemon.number },
-      { $inc: { value: 100 * modPokemon + 100 * mod } },
+      { $inc: { value: 100 * tierPokemon.mod_pokemon + 100 * mod } },
       { upsert: true }
     ),
   ]);
