@@ -4,7 +4,7 @@ import { OwnedPokemon } from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 import Training from "../models/Trainings";
 import RankingTrainers from "../models/views/RankingTrainers";
-import { availableTiers } from "./tier";
+import { availableTiers, findMyTier } from "./tier";
 
 export interface TrainingTiming {
   hours: number;
@@ -71,28 +71,8 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     availableTiers.find((t) => me && t.when((me.index - 1) / total)) ||
     availableTiers[availableTiers.length - 1];
 
-  const infoPokemon = await InfoPokemon.findOne({
-    number: pokemon.number,
-  });
-
-  if (!infoPokemon) {
-    throw new Error(`Pokemon ${pokemon.number} not found`);
-  }
-
-  const tier = () => {
-    const valid = infoPokemon.tiers.find((t) => pokemon.total >= t.value);
-
-    if (valid) {
-      return valid.tier;
-    } else if (infoPokemon.tiers.length - 1 >= 0) {
-      return availableTiers[infoPokemon.tiers.length].name;
-    } else {
-      return availableTiers[0].name;
-    }
-  };
-
   const tierPokemon =
-    availableTiers.find((t) => t.name === tier()) ||
+    await findMyTier(pokemon) ||
     availableTiers[availableTiers.length - 1];
 
   function getStats(name: string) {
