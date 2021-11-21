@@ -1,13 +1,10 @@
 import { Document, model, Schema } from "mongoose";
+import { BasicTier } from "../managers/tier";
 
 export interface InfoPokemon extends Document {
   number: number;
   name: string;
-  tiers: {
-    order: number;
-    tier: string;
-    value: number;
-  }[];
+  tiers: BasicTier[];
 }
 
 export const InfoPokemonSchema = new Schema({
@@ -16,7 +13,7 @@ export const InfoPokemonSchema = new Schema({
   tiers: [
     {
       order: Number,
-      tier: String,
+      name: String,
       value: Number,
     },
   ],
