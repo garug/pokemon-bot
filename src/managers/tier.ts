@@ -90,8 +90,17 @@ export const fnList = (list: any[], pList: any[]) => {
     },
   };
 
+  let pointer = 0;
   while (state.minElements > list.length) {
-    state.chuncks = state.chuncks.map((e) => e - 1 || 1);
+    if (state.chuncks[pointer] - 1 > 1) {
+      state.chuncks[pointer]--;
+    }
+
+    if (pointer === state.chuncks.length - 1) {
+      pointer = 0;
+    } else {
+      pointer++;
+    }
   }
 
   return state.payback;
