@@ -1,4 +1,5 @@
 import axios from "axios";
+import InfoPokemon from "../models/InfoPokemon";
 import { OwnedPokemon } from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 import Training from "../models/Trainings";
@@ -70,7 +71,29 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     availableTiers.find((t) => me && t.when((me.index - 1) / total)) ||
     availableTiers[availableTiers.length - 1];
 
-  const modPokemon = 0.5;
+  const infoPokemon = await InfoPokemon.findOne({
+    number: pokemon.number,
+  });
+
+  if (!infoPokemon) {
+    throw new Error(`Pokemon ${pokemon.number} not found`);
+  }
+
+  const tier = () => {
+    const valid = infoPokemon.tiers.find((t) => pokemon.total >= t.value);
+
+    if (valid) {
+      return valid.tier;
+    } else if (infoPokemon.tiers.length - 1 >= 0) {
+      return availableTiers[infoPokemon.tiers.length].name;
+    } else {
+      return availableTiers[0].name;
+    }
+  };
+
+  const tierPokemon =
+    availableTiers.find((t) => t.name === tier()) ||
+    availableTiers[availableTiers.length - 1];
 
   function getStats(name: string) {
     return defaultPokemon.data.stats.find((s: any) => s.stat.name === name)
@@ -78,7 +101,10 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   }
 
   function applyValue(value: number) {
-    return ((value / 2) * tierTrainer.mod_trainer * modPokemon * mod) / 100;
+    const modTrainer = tierTrainer.mod_trainer;
+    const modPokemon = tierPokemon.mod_pokemon;
+
+    return ((value / 2) * modTrainer * modPokemon * mod) / 100;
   }
 
   const computedTraining = {
@@ -106,7 +132,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     Training.deleteOne({ pokemon: pokemon.id }),
     await Prestige.updateOne(
       { user: pokemon.user, pokemon: pokemon.number },
-      { $inc: { value: 100 * modPokemon + 100 * mod } },
+      { $inc: { value: 100 * tierPokemon.mod_pokemon + 100 * mod } },
       { upsert: true }
     ),
   ]);
