@@ -105,7 +105,7 @@ export const fnList = (list: any[], pList: any[]) => {
 
   let pointer = 0;
   while (state.minElements > list.length) {
-    if (state.chuncks[pointer] - 1 > 1) {
+    if (state.chuncks[pointer] - 1 >= 1) {
       state.chuncks[pointer]--;
     }
 
@@ -189,7 +189,7 @@ export async function updatePokemon() {
       .filter((_, index) => fn[index])
       .map((t, index) => ({
         order: index,
-        tier: t.name,
+        name: t.name,
         value: fn[index][fn[index].length - 1].total,
       }));
 
