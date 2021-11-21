@@ -29,6 +29,7 @@ import Offer from "./models/Offer";
 import { handleTraining } from "./messages/training";
 import RankingTrainers from "./models/views/RankingTrainers";
 import { handleRanking } from "./messages/ranking";
+import handleTier from "./messages/tier";
 
 const app = express();
 
@@ -315,4 +316,5 @@ useClient().on("messageCreate", async (m) => {
   else if (messageStartsWith(message, "refuse")) refuseTrade(m);
   else if (messageStartsWith(message, "tt")) handleTraining(m);
   else if (messageStartsWith(message, "ranking")) handleRanking(m);
+  else if (messageStartsWith(message, "tier")) handleTier(m);
 });
