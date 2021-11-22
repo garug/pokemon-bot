@@ -72,8 +72,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     availableTiers[availableTiers.length - 1];
 
   const tierPokemon =
-    await findMyTier(pokemon) ||
-    availableTiers[availableTiers.length - 1];
+    (await findMyTier(pokemon)) || availableTiers[availableTiers.length - 1];
 
   function getStats(name: string) {
     return defaultPokemon.data.stats.find((s: any) => s.stat.name === name)
@@ -84,8 +83,11 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     const modTrainer = tierTrainer.mod_trainer;
     const modPokemon = tierPokemon.mod_pokemon;
 
+    console.log(value, modTrainer, modPokemon, mod);
     return ((value / 2) * modTrainer * modPokemon * mod) / 100;
   }
+
+  console.log(pokemon.id, pokemon.name, pokemon.user);
 
   const computedTraining = {
     user: pokemon.user,
