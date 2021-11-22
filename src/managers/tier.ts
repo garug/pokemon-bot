@@ -23,7 +23,7 @@ export const availableTiers: Tier[] = [
     order: 0,
     name: "SS",
     value: 0.01,
-    when: (value) => value > 0 && value <= 0.01,
+    when: (value) => value >= 0 && value <= 0.01,
     mod_pokemon: 0.05,
     mod_trainer: 5,
   },

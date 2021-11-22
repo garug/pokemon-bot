@@ -84,7 +84,7 @@ export const OwnedPokemonSchema = new Schema({
 OwnedPokemonSchema.virtual("total").get(function (this: OwnedPokemon) {
   const all = [
     ...values(this.attributes),
-    // ...this.trainings.flatMap((t) => values(t.attributes)),
+    ...this.trainings.flatMap((t) => values(t.attributes)),
   ];
 
   return sum(all);
