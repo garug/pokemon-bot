@@ -5,7 +5,7 @@ import RankingTrainers from "../models/views/RankingTrainers";
 export async function handleRanking(m: Message) {
   const [_, p] = m.content.split(" ");
 
-  if (m.channel.id !== "891998683082657803") {
+  if (m.channel.id !== "891998683082657803" && !process.env.DEVMODE) {
     return m.reply(
       `This command is only available in the <#891998683082657803> channel.`
     );
