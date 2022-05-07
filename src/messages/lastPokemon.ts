@@ -38,6 +38,7 @@ export async function lastPokemonRunAway() {
 export default async function handleLastPokemon(m: Message) {
   const name = lastPokemon.pokemon.name;
   const number = lastPokemon.pokemon.id;
+  const shiny = lastPokemon.pokemon.shiny;
 
   const attributes = lastPokemon.pokemon.stats.reduce((acc: any, s: any) => {
     if (s.stat.name === "special-attack") {
@@ -65,7 +66,7 @@ export default async function handleLastPokemon(m: Message) {
     attributes: copy,
     level: 0,
     marks: {
-      shiny: lastPokemon.pokemon.shiny,
+      shiny,
     }
   });
 
