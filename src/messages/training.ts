@@ -37,10 +37,10 @@ export async function handleTraining(m: Message) {
     activeTrainings.forEach(async (training) => {
       if (isBefore(training.finish_at, new Date())) {
         const p = await OwnedPokemon.findOne({ id: training.pokemon });
-        if (p) await Promise.all([
-          applyTraining(p, training.mod),
-          createTraining(p.id, m.author.id, timeTraining)
-        ]);
+        if (p) {
+          await applyTraining(p, training.mod);
+          await createTraining(p.id, m.author.id, timeTraining);
+        }
       }
     });
     return m.reply(`You have started training!`);
