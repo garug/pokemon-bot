@@ -23,7 +23,7 @@ export async function handleTraining(m: Message) {
   // Repeat last training
   if (pokemon === "repeat") {
     const timeTraining = availableTrainings.find(
-      (t) => t.hours === parseInt(p3)
+      (t) => t.hours === parseInt(time)
     );
 
     if (!timeTraining) {
