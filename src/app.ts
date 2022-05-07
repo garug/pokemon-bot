@@ -30,6 +30,7 @@ import { handleTraining } from "./messages/training";
 import RankingTrainers from "./models/views/RankingTrainers";
 import { handleRanking } from "./messages/ranking";
 import handleTier from "./messages/tier";
+import { updatePokemon } from "./managers/tier";
 
 const app = express();
 
@@ -47,8 +48,9 @@ useSocket(server);
 new Database().connect();
 
 app.get("/", async (req, res) => {
-  const a = await RankingTrainers.find();
-  console.log(a);
+  // const a = await RankingTrainers.find();
+  // console.log(a);
+  await updatePokemon();
   res.send();
 });
 
@@ -279,12 +281,14 @@ setInterval(async () => {
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.number}/`
   );
 
+  pokemon.data.shiny = Math.random() < 0.3;
+
   updateLastPokemon(pokemon.data);
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
-    .setDescription("Who's that pokemon?")
+    .setDescription("Who's that pokemon?" + (pokemon.data.shiny && " ✨✨✨"))
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });

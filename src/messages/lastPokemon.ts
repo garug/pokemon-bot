@@ -64,6 +64,9 @@ export default async function handleLastPokemon(m: Message) {
     original_user: m.author.id,
     attributes: copy,
     level: 0,
+    marks: {
+      shiny: lastPokemon.pokemon.shiny,
+    }
   });
 
   await Prestige.updateOne(
@@ -76,7 +79,7 @@ export default async function handleLastPokemon(m: Message) {
 
   const reply = new MessageEmbed()
     .setColor("#f39c12")
-    .setDescription(`${m.author} caught a ${name}! Class ${rank}!`);
+    .setDescription(`${m.author} caught a ${(createdPokemon.marks.shiny && '✨')} ${name}! Class ${rank}!`);
 
   m.channel.send({ embeds: [reply] });
 }
