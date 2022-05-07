@@ -13,6 +13,7 @@ export interface OwnedPokemon extends Document {
   moves: [string, string, string, string];
   marks: {
     tradable: boolean;
+    shiny: boolean;
   };
   attributes: Attributes;
   trainings: {
@@ -66,6 +67,7 @@ export const OwnedPokemonSchema = new Schema({
   },
   marks: {
     tradable: { type: Boolean, default: false },
+    shiny: { type: Boolean, default: false },
   },
   attributes: useAttributes(),
   trainings: [
