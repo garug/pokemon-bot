@@ -16,9 +16,35 @@ export async function handleTraining(m: Message) {
     );
   }
 
-  const [_, pokemon, time] = m.content.split(" ");
+  const [_, pokemon, time, p3] = m.content.split(" ");
 
   const activeTrainings = await Training.find({ user: m.author.id });
+
+  // Repeat last training
+  if (pokemon === "repeat") {
+    const timeTraining = availableTrainings.find(
+      (t) => t.hours === parseInt(p3)
+    );
+
+    if (!timeTraining) {
+      return m.reply(
+        `Invalid time, please choose one of ${availableTrainings
+          .map((t) => t.hours)
+          .join(", ")} hours`
+      );
+    }
+
+    activeTrainings.forEach(async (training) => {
+      if (isBefore(training.finish_at, new Date())) {
+        const p = await OwnedPokemon.findOne({ id: training.pokemon });
+        if (p) await Promise.all([
+          applyTraining(p, training.mod),
+          createTraining(p.id, m.author.id, timeTraining)
+        ]);
+      }
+    });
+    return m.reply(`You have started training!`);
+  }
 
   // Finish completed trainings
   if (pokemon === "finish") {
