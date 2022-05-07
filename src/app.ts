@@ -288,7 +288,7 @@ setInterval(async () => {
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
-    .setDescription("Who's that pokemon?" + (pokemon.data.shiny && " ✨✨✨"))
+    .setDescription("Who's that pokemon?" + (pokemon.data.shiny ? " ✨✨✨": ""))
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
