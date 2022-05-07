@@ -80,7 +80,7 @@ export default async function handleLastPokemon(m: Message) {
 
   const reply = new MessageEmbed()
     .setColor("#f39c12")
-    .setDescription(`${m.author} caught a ${(createdPokemon.marks.shiny && '✨')} ${name}! Class ${rank}!`);
+    .setDescription(`${m.author} caught a ${(createdPokemon.marks.shiny ? '✨' : '')} ${name}! Class ${rank}!`);
 
   m.channel.send({ embeds: [reply] });
 }
