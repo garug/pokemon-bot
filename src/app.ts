@@ -281,7 +281,7 @@ setInterval(async () => {
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.number}/`
   );
 
-  pokemon.data.shiny = Math.random() < 0.3;
+  pokemon.data.shiny = Math.random() < 0.01;
 
   updateLastPokemon(pokemon.data);
 
