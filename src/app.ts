@@ -255,7 +255,7 @@ app.get(process.env.CALLABLE_POKEMON || "/call", async(req, res) => {
   const probability = timeDifference / maxInterval;
   const test = probability > Math.random();
 
-  if (!test || (await lastPokemonRunAway())) return;
+  if (!test || (await lastPokemonRunAway())) return res.send("ok1");
 
   const possiblePokemon = Array.from(
     await SetCollection.find({
@@ -288,6 +288,8 @@ app.get(process.env.CALLABLE_POKEMON || "/call", async(req, res) => {
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
+
+  return res.send("ok2");
 });
 
 function devMessage(msg: string) {
