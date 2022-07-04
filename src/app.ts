@@ -249,11 +249,7 @@ app.post("/@me", async (req, res) => {
 
 const maxInterval = 12 * 60 * 1000;
 
-const chanceInterval = process.env.DEVMODE
-  ? 24 * 60 * 60 * 1000
-  : 1 * 60 * 1000;
-
-setInterval(async () => {
+app.get(process.env.CALLABLE_POKEMON || "/call", async(req, res) => {
   const now = new Date().getTime();
   const timeDifference = now - useLastPokemon().date.getTime();
   const probability = timeDifference / maxInterval;
@@ -292,7 +288,7 @@ setInterval(async () => {
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
-}, chanceInterval);
+});
 
 function devMessage(msg: string) {
   return `$${msg}`;
