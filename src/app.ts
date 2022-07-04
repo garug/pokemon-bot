@@ -50,8 +50,8 @@ new Database().connect();
 app.get("/", async (req, res) => {
   // const a = await RankingTrainers.find();
   // console.log(a);
-  await updatePokemon();
-  res.send();
+  console.log(process.env.CALLABLE_POKEMON)
+  res.send("ok");
 });
 
 app.get("/users", async (req, res) => {
@@ -248,6 +248,8 @@ app.post("/@me", async (req, res) => {
 });
 
 const maxInterval = 12 * 60 * 1000;
+
+console.log(process.env.CALLABLE_POKEMON)
 
 app.get(process.env.CALLABLE_POKEMON || "/call", async(req, res) => {
   const now = new Date().getTime();
