@@ -1,3 +1,4 @@
+import "newrelic";
 import { MessageEmbed } from "discord.js";
 import axios from "axios";
 
