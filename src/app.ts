@@ -273,7 +273,7 @@ app.get("/call", async (req, res) => {
   const now = new Date().getTime();
   const timeDifference = now - useLastPokemon().date.getTime();
   const probability = timeDifference / maxInterval;
-  const test = probability > Math.random();
+  const test = probability > Math.random() || key === process.env.SENSATO;
 
   if (!test && key === process.env.SENSATO)
     admTries();
