@@ -51,6 +51,12 @@ app.get("/", async (req, res) => {
   res.send();
 });
 
+app.get("/info", async (req, res) => {
+  return res.send({
+    lastPokemon: useLastPokemon()
+  });
+})
+
 app.get("/users", async (req, res) => {
   const pokemon = await MoreStrongPokemon.find();
   return res.json({ pokemon });
@@ -246,17 +252,28 @@ app.post("/@me", async (req, res) => {
 
 const maxInterval = 12 * 60 * 1000;
 
-const chanceInterval = process.env.DEVMODE
-  ? 24 * 60 * 60 * 1000
-  : 1 * 60 * 1000;
+const admTries = async () => {
+  const message = new MessageEmbed()
+    .setColor("#f39c12")
+    .setTitle("Falhou")
+    .setDescription("<@862861715937951744> tentou mas n deu")
 
-setInterval(async () => {
+  useChannel().send({ embeds: [message] });
+}
+
+app.get("/call", async (req, res) => {
+  if (req.query.key !== process.env.CALLABLE_POKEMON && req.query.key !== process.env.SENSATO)
+    return res.status(401).send();
+
   const now = new Date().getTime();
   const timeDifference = now - useLastPokemon().date.getTime();
   const probability = timeDifference / maxInterval;
   const test = probability > Math.random();
 
-  if (!test || (await lastPokemonRunAway())) return;
+  if (!test && process.env.SENSATO)
+    admTries();
+
+  if (!test || (await lastPokemonRunAway())) return res.send("ok1");
 
   const possiblePokemon = Array.from(
     await SetCollection.find({
@@ -278,12 +295,19 @@ setInterval(async () => {
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.number}/`
   );
 
-  updateLastPokemon(pokemon.data);
+  const { name, stats, id } = pokemon.data;
+
+  updateLastPokemon({
+    name,
+    stats,
+    id,
+    shiny: Math.random() < 0.01
+  });
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
-    .setDescription("Who's that pokemon?")
+    .setDescription("Who's that pokemon?" + (pokemon.data.shiny ? " ✨✨✨" : ""))
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
@@ -306,7 +330,7 @@ function messageStartsWith(message: string, startsWith: string) {
 useClient().on("messageCreate", async (m) => {
   const message = m.content.toLowerCase();
   const lastPokemon = useLastPokemon().pokemon?.name.toLowerCase();
-  if (messageIs(message, lastPokemon)) handleLastPokemon(m);
+  if (lastPokemon && messageIs(message, lastPokemon)) handleLastPokemon(m);
   else if (messageIs(message, "dex")) handleDex(m);
   else if (messageStartsWith(message, "trade")) handleTrade(m);
   else if (messageStartsWith(message, "mark")) mark(m);
