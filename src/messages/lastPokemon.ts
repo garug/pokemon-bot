@@ -5,19 +5,41 @@ import { findMyTier } from "../managers/tier";
 import OwnedPokemon from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 
-let lastPokemon = {
+interface ActiveStatus {
+  date: Date,
+  pokemon?: ActivePokemon,
+  prev?: ActivePokemon
+}
+
+interface PokeApiStat {
+  base_stat: number,
+  stat: {
+    name: string
+  }
+}
+
+interface ActivePokemon {
+  name: string,
+  id: number,
+  shiny: boolean,
+  stats: PokeApiStat[]
+}
+
+let lastPokemon: ActiveStatus = {
   date: new Date(),
-  pokemon: undefined as any,
+  pokemon: undefined,
+  prev: undefined
 };
 
 export function useLastPokemon() {
   return lastPokemon;
 }
 
-export function updateLastPokemon(pokemon?: any) {
+export function updateLastPokemon(pokemon?: ActivePokemon) {
   lastPokemon = {
     date: new Date(),
     pokemon,
+    prev: lastPokemon.pokemon
   };
 }
 
@@ -36,6 +58,9 @@ export async function lastPokemonRunAway() {
 }
 
 export default async function handleLastPokemon(m: Message) {
+  if (!lastPokemon.pokemon) 
+    return;
+
   const name = lastPokemon.pokemon.name;
   const number = lastPokemon.pokemon.id;
   const shiny = lastPokemon.pokemon.shiny;
