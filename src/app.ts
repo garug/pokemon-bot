@@ -259,13 +259,15 @@ const admTries = async () => {
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("Falhou")
-    .setDescription("<@862861715937951744> tentou mas n deu")
+    .setDescription("<@&862861715937951744> tentou mas n deu")
 
   useChannel().send({ embeds: [message] });
 }
 
 app.get("/call", async (req, res) => {
-  if (req.query.key !== process.env.CALLABLE_POKEMON && req.query.key !== process.env.SENSATO)
+  const { key } = req.query;
+
+  if (key !== process.env.CALLABLE_POKEMON && key !== process.env.SENSATO)
     return res.status(401).send();
 
   const now = new Date().getTime();
@@ -273,7 +275,7 @@ app.get("/call", async (req, res) => {
   const probability = timeDifference / maxInterval;
   const test = probability > Math.random();
 
-  if (!test && process.env.SENSATO)
+  if (!test && key === process.env.SENSATO)
     admTries();
 
   if (!test || (await lastPokemonRunAway())) return res.send("ok1");
