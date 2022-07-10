@@ -226,7 +226,7 @@ export async function findMyTier(pokemon: TypeOwnedPokemon): Promise<Tier> {
   } else if (!infoPokemon) {
     return availableTiers[0];
   } else if (infoPokemon.tiers.length - 1 >= 0) {
-    return availableTiers[infoPokemon.tiers.length];
+    return availableTiers[infoPokemon.tiers.length - 1];
   } else {
     return availableTiers[0];
   }
