@@ -45,5 +45,5 @@ export async function handleRanking(m: Message) {
     .map((r) => `${r.index}. <@${r.user}> - ${r.value}\n`)
     .join("");
 
-  return m.reply(`Ranking:\n${rankingString}\n Your position: ${meString}`);
+  return m.reply(`🏅 Ranking:\n${rankingString}\n Your position: ${meString}`);
 }
