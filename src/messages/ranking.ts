@@ -42,7 +42,7 @@ export async function handleRanking(m: Message) {
   }
 
   const rankingString = ranking
-    .map((r) => `${r.index} ${useMedal(r.index)}. <@${r.user}> - ${r.value}\n`)
+    .map((r) => `${useMedal(r.index)} <@${r.user}> - ${r.value.toFixed(1)}\n`)
     .join("");
 
   return m.reply(`🏆 Ranking:\n${rankingString}\n Your position: ${meString}`);
