@@ -31,5 +31,5 @@ export default async function handleTier(m: Message) {
     .map((t) => `${t.name}. - ${t.value}\n`)
     .join("");
 
-  return m.reply(`Tier List:\n${tierString}`);
+  return m.reply(`🏅 Tier List:\n${tierString}`);
 }
