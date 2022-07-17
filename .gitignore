@@ -1,6 +1,7 @@
 node_modules
 dist
 .vscode/*
+.idea/*
 *.env
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
