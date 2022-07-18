@@ -25,7 +25,9 @@ export function sort<Type>(possibities: Type[], mapToPossibility: (param: Type) 
             return total;
         });
 
-    const index = usedPossibilities.findIndex((n) => n >= random(1, total));
+    const randonizedPokemon = random(1, total);
+
+    const index = usedPossibilities.findIndex((n) => n >= randonizedPokemon);
 
     return possibities[index];
 }
