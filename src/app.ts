@@ -295,7 +295,7 @@ app.get("/call", async (req, res) => {
 
   const { name, stats, id } = pokemon.data;
 
-  const shiny = Math.random() < 1;
+  const shiny = Math.random() < 0.01;
 
   updateLastPokemon({
     name,
