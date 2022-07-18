@@ -15,7 +15,7 @@ import {
   revokeToken,
   useChannel,
   useClient,
-} from "./discord";
+} from "./discordStuff";
 import handleDex from "./messages/dex";
 import { mark, unmark } from "./messages/pokemon";
 import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
@@ -32,6 +32,7 @@ import RankingTrainers from "./models/views/RankingTrainers";
 import { handleRanking } from "./messages/ranking";
 import handleTier from "./messages/tier";
 import { updatePokemon } from "./managers/tier";
+import {sort} from "./lib/utils";
 
 const app = express();
 
@@ -286,33 +287,27 @@ app.get("/call", async (req, res) => {
     })
   ).flatMap((set) => set.pokemon);
 
-  let total = 0;
+  const sortedPokemon = sort(possiblePokemon, (p) => p.chance);
 
-  const probabilities = possiblePokemon.map((p) => {
-    total += p.chance;
-    return total;
-  });
-
-  const sortedNumber = Math.floor(Math.random() * (total - 1)) + 1;
-  const sortedPokemon =
-    possiblePokemon[probabilities.findIndex((n) => n > sortedNumber)];
   const pokemon = await axios.get<any>(
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.number}/`
   );
 
   const { name, stats, id } = pokemon.data;
 
+  const shiny = Math.random() < 1;
+
   updateLastPokemon({
     name,
     stats,
     id,
-    shiny: Math.random() < 0.01
+    shiny,
   });
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
-    .setDescription("Who's that pokemon?" + (pokemon.data.shiny ? " ✨✨✨" : ""))
+    .setDescription("Who's that pokemon?" + (shiny ? " ✨✨✨" : ""))
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
