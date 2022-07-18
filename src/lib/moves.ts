@@ -1,5 +1,5 @@
 import Pokemon, { Attribute } from "../Pokemon";
-import { randomFromInterval } from "./utils";
+import { random as randomFromInterval } from "lodash";
 
 export default class Move {
   name: string;

@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from "discord.js";
-import { useChannel } from "../discord";
+import { useChannel } from "../discordStuff";
 import { generateNumber } from "../lib/utils";
 import { findMyTier } from "../managers/tier";
 import OwnedPokemon from "../models/OwnedPokemon";
@@ -11,18 +11,14 @@ interface ActiveStatus {
   prev?: ActivePokemon
 }
 
-interface PokeApiStat {
-  base_stat: number,
-  stat: {
-    name: string
-  }
-}
-
 interface ActivePokemon {
   name: string,
   id: number,
   shiny: boolean,
-  stats: PokeApiStat[]
+  stats: {
+    name: string,
+    value: number
+  }[]
 }
 
 let lastPokemon: ActiveStatus = {
