@@ -8,9 +8,15 @@ export default async function handleTier(m: Message) {
   let pokemon = parseInt(p);
 
   if (isNaN(pokemon)) {
-    const pokeApi = await axios.get<any>(
-      `https://pokeapi.co/api/v2/pokemon/${p}/`
-    );
+    let pokeApi;
+    try {
+      pokeApi = await axios.get<any>(
+        `https://pokeapi.co/api/v2/pokemon/${p}/`
+      );
+    } catch (e) {
+      console.error(e);
+      await m.reply("Error on your command");
+    }
 
     if (!pokeApi.data.id) {
       return m.reply("You need to specify a valid pokemon.");
