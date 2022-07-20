@@ -15,7 +15,7 @@ export default async function handleTier(m: Message) {
       );
     } catch (e) {
       console.error(e);
-      await m.reply("Error on your command");
+      return m.reply("Error on your command");
     }
 
     if (!pokeApi.data.id) {
