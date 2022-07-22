@@ -61,6 +61,11 @@ app.get("/info", async (req, res) => {
   });
 })
 
+app.get("/update", async(req, res) => {
+  await updatePokemon();
+  return res.send("updated");
+})
+
 app.get("/users", async (req, res) => {
   const pokemon = await MoreStrongPokemon.find();
   return res.json({ pokemon });
