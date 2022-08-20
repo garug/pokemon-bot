@@ -1,4 +1,4 @@
-import { random } from "lodash";
+import { random, isEqual } from "lodash";
 
 export function generateNumber(number: number) {
     const chance = Math.random();
@@ -15,7 +15,12 @@ export function generateNumber(number: number) {
     }
 }
 
-export function sort<Type>(possibities: Type[], mapToPossibility: (param: Type) => number = () => 1): Type {
+interface InfoSorted<T> {
+    sorted: T;
+    chance: number;
+}
+
+export function infoSort<Type>(possibities: Type[], mapToPossibility: (param: Type) => number = () => 1): InfoSorted<Type> {
     let total = 0;
 
     const usedPossibilities = possibities
@@ -25,9 +30,19 @@ export function sort<Type>(possibities: Type[], mapToPossibility: (param: Type) 
             return total;
         });
 
-    const randonizedPokemon = random(1, total);
+    const randonizedNumber = random(1, total);
 
-    const index = usedPossibilities.findIndex((n) => n >= randonizedPokemon);
+    const index = usedPossibilities.findIndex((n) => n >= randonizedNumber);
 
-    return possibities[index];
+    const sorted = possibities[index];
+
+    return {
+        sorted,
+        chance: possibities.filter(e => isEqual(e, sorted)).length / total,
+    }
+}
+
+export function sort<Type>(possibities: Type[], mapToPossibility: (param: Type) => number = () => 1): Type {
+    const { sorted } = infoSort(possibities, mapToPossibility);
+    return sorted;
 }
