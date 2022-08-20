@@ -6,6 +6,7 @@ export interface OwnedPokemon extends Document {
   id: string;
   name: string;
   number: number;
+  form?: string;
   user: string;
   original_user: string;
   created_at: Date;
@@ -54,6 +55,7 @@ export const OwnedPokemonSchema = new Schema({
   },
   number: { type: Number, required: true },
   name: { type: String, required: true },
+  form: String,
   user: { type: String, required: true },
   original_user: { type: String, required: true },
   created_at: { type: Date, required: true, default: Date.now },

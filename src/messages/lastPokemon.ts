@@ -13,6 +13,7 @@ interface ActiveStatus {
 
 interface ActivePokemon {
   name: string,
+  form?: string,
   id: number,
   shiny: boolean,
   chance: number,
@@ -28,7 +29,7 @@ let lastPokemon: ActiveStatus = {
   prev: undefined
 };
 
-export const RARE_POKEMON_CHANCE = 0.001;
+export const RARE_POKEMON_CHANCE = 0.0001;
 
 export function useLastPokemon() {
   return lastPokemon;
@@ -60,9 +61,7 @@ export default async function handleLastPokemon(m: Message) {
   if (!lastPokemon.pokemon) 
     return;
 
-  const name = lastPokemon.pokemon.name;
-  const number = lastPokemon.pokemon.id;
-  const shiny = lastPokemon.pokemon.shiny;
+  const { name, id : number, shiny, form } = lastPokemon.pokemon;
 
   const attributes = lastPokemon.pokemon.stats.reduce((acc: any, s: any) => {
     if (s.stat.name === "special-attack") {
@@ -91,6 +90,7 @@ export default async function handleLastPokemon(m: Message) {
   const createdPokemon = await OwnedPokemon.create({
     number,
     name,
+    form,
     user: m.author.id,
     original_user: m.author.id,
     attributes: copy,
@@ -110,7 +110,7 @@ export default async function handleLastPokemon(m: Message) {
 
   const reply = new MessageEmbed()
     .setColor("#f39c12")
-    .setDescription(`${m.author} caught a ${(createdPokemon.marks.shiny ? '✨' : '')} ${name}! Class ${rank}!`);
+    .setDescription(`${m.author} caught a ${(createdPokemon.marks.shiny ? '✨' : '')} ${form || name}! Class ${rank}!`);
 
   m.channel.send({ embeds: [reply] });
 }

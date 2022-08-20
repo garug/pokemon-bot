@@ -33,6 +33,8 @@ import { handleRanking } from "./messages/ranking";
 import handleTier from "./messages/tier";
 import { updatePokemon } from "./managers/tier";
 import { infoSort } from "./lib/utils";
+import InfoPokemon, { PokemonForm } from "./models/InfoPokemon";
+import { v4 } from "uuid";
 
 const app = express();
 
@@ -283,20 +285,33 @@ app.get("/call", async (req, res) => {
   // TODO com a adição de mais sets e pokemon se repetindo, será necessário agrupar antes de sortear
   const sortedPokemon = infoSort(possiblePokemon, (p) => p.chance);
 
+  const chances = [sortedPokemon.chance];
+  let form: PokemonForm | undefined;
+
+  const info = await InfoPokemon.findOne({ number: sortedPokemon.sorted.number });
+  if (info?.forms) {
+    const {sorted, chance} = infoSort(info.forms, p => p.chance)
+    form = sorted;
+    chances.push(chance);
+  }
+
   const pokemon = await axios.get<any>(
-    `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.sorted.number}/`
+    `https://pokeapi.co/api/v2/pokemon/${form?.id_api || sortedPokemon.sorted.number}/`
   );
 
-  const { name, stats, id } = pokemon.data;
+  const { name, stats, species } = pokemon.data;
 
   const shinyRate = 0.01;
   const shiny = Math.random() < shinyRate;
-  const chance = (shiny ? shinyRate : 1 - shinyRate) * sortedPokemon.chance;
+  chances.push(shiny ? shinyRate : 1 - shinyRate);
+
+  const chance = chances.reduce((acc, e) => acc * e);
 
   updateLastPokemon({
-    name,
+    name: form?.name || (form?.use_specie_name ? species.name : name),
+    form: form?.id,
     stats,
-    id,
+    id: sortedPokemon.sorted.number,
     shiny,
     chance,
   });
@@ -308,7 +323,7 @@ app.get("/call", async (req, res) => {
     .setTitle("A wild pokemon appeared")
     .setDescription("Who's that pokemon?" + shinyMessage)
     .setFooter({text: "Chance of that pokemon: " + (chance * 100).toFixed(3) + "%" })
-    .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
+    .setImage(form?.image || pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
 
