@@ -38,7 +38,7 @@ export function infoSort<Type>(possibities: Type[], mapToPossibility: (param: Ty
 
     return {
         sorted,
-        chance: possibities.filter(e => isEqual(e, sorted)).length / total,
+        chance: possibities.filter(e => isEqual(e, sorted)).map(mapToPossibility).reduce((acc, e) => acc + e) / total,
     }
 }
 
