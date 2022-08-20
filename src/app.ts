@@ -311,17 +311,18 @@ app.get("/call", async (req, res) => {
   });
 
   const shinyMessage = shiny ? " ✨✨✨" : "";
-  const chanceMessage = chance <= 10 ? " @here, a rare pokemon!!!" : "";
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
-    .setDescription("Who's that pokemon?" + shinyMessage + chanceMessage)
+    .setDescription("Who's that pokemon?" + shinyMessage)
     .setFooter({text: "Chance of that pokemon: " + (chance * 100).toFixed(3) + "%" })
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
-  useChannel().send("@here, a rare pokemon!!!")
+
+  if (chance <= 0.001)
+    useChannel().send("@here a rare pokemon :eita:")
 
   return res.send("ok2");
 });
