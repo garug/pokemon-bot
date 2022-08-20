@@ -292,8 +292,6 @@ app.get("/call", async (req, res) => {
   // TODO com a adição de mais sets e pokemon se repetindo, será necessário agrupar antes de sortear
   const sortedPokemon = infoSort(possiblePokemon, (p) => p.chance);
 
-  console.log(sortedPokemon);
-
   const pokemon = await axios.get<any>(
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.sorted.number}/`
   );
@@ -313,13 +311,13 @@ app.get("/call", async (req, res) => {
   });
 
   const shinyMessage = shiny ? " ✨✨✨" : "";
-  const chanceMessage = " @here!!!";
+  const chanceMessage = chance <= 0.0001 ? " @here, a rare pokemon!!!" : "";
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
     .setDescription("Who's that pokemon?" + shinyMessage + chanceMessage)
-    .setFooter({text: "Chance of that pokemon: " + sortedPokemon.chance })
+    .setFooter({text: "Chance of that pokemon: " + (chance * 100).toFixed(3) + "%" })
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
