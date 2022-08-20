@@ -1,5 +1,5 @@
-import { Message, MessageEmbed } from "discord.js";
-import { useChannel } from "../discordStuff";
+import { Message, MessageEmbed, TextChannel } from "discord.js";
+import { useChannel, useClient } from "../discordStuff";
 import { generateNumber } from "../lib/utils";
 import { findMyTier } from "../managers/tier";
 import OwnedPokemon from "../models/OwnedPokemon";
@@ -77,6 +77,9 @@ export default async function handleLastPokemon(m: Message) {
   Object.keys(attributes).forEach((a) => {
     copy[a] = generateNumber(attributes[a]);
   });
+
+  const reportChannel = useClient().channels.cache.get("909200154932965448") as TextChannel;
+  await reportChannel.send(`${m.author} caught a ${name} with ${lastPokemon.pokemon.chance * 100}% of chance`)
 
   updateLastPokemon();
 
