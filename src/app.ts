@@ -5,7 +5,7 @@ import axios from "axios";
 import Database from "./MongoDatabase";
 import OwnedPokemon from "./models/OwnedPokemon";
 import handleLastPokemon, {
-  lastPokemonRunAway,
+  lastPokemonRunAway, RARE_POKEMON_CHANCE,
   updateLastPokemon,
   useLastPokemon,
 } from "./messages/lastPokemon";
@@ -261,15 +261,6 @@ app.post("/@me", async (req, res) => {
 
 const maxInterval = 12 * 60 * 1000;
 
-const admTries = async () => {
-  const message = new MessageEmbed()
-    .setColor("#f39c12")
-    .setTitle("Falhou")
-    .setDescription("<@&862861715937951744> tentou mas n deu")
-
-  useChannel().send({ embeds: [message] });
-}
-
 app.get("/call", async (req, res) => {
   const { key } = req.query;
 
@@ -321,8 +312,8 @@ app.get("/call", async (req, res) => {
 
   useChannel().send({ embeds: [message] });
 
-  if (chance <= 0.001)
-    useChannel().send("@here a rare pokemon :eita:")
+  if (chance <= RARE_POKEMON_CHANCE)
+    useChannel().send("@here a rare pokemon <:eita:1010530215363100672>")
 
   return res.send("ok2");
 });

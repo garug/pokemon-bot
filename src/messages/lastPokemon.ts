@@ -28,6 +28,8 @@ let lastPokemon: ActiveStatus = {
   prev: undefined
 };
 
+export const RARE_POKEMON_CHANCE = 0.001;
+
 export function useLastPokemon() {
   return lastPokemon;
 }
@@ -78,8 +80,11 @@ export default async function handleLastPokemon(m: Message) {
     copy[a] = generateNumber(attributes[a]);
   });
 
-  const reportChannel = useClient().channels.cache.get("909200154932965448") as TextChannel;
-  await reportChannel.send(`${m.author} caught a ${name} with ${lastPokemon.pokemon.chance * 100}% of chance`)
+  if (lastPokemon.pokemon.chance < RARE_POKEMON_CHANCE) {
+    const reportChannel = useClient().channels.cache.get("909200154932965448") as TextChannel;
+    const chance = (lastPokemon.pokemon.chance * 100).toFixed(5);
+    await reportChannel.send(`${m.author} caught a ${name} with ${chance}% of chance`)
+  }
 
   updateLastPokemon();
 
