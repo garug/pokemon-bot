@@ -18,6 +18,7 @@ export function generateNumber(number: number) {
 interface InfoSorted<T> {
     sorted: T;
     chance: number;
+    total: number;
 }
 
 export function infoSort<Type>(possibities: Type[], mapToPossibility: (param: Type) => number = () => 1): InfoSorted<Type> {
@@ -39,6 +40,7 @@ export function infoSort<Type>(possibities: Type[], mapToPossibility: (param: Ty
     return {
         sorted,
         chance: possibities.filter(e => isEqual(e, sorted)).map(mapToPossibility).reduce((acc, e) => acc + e) / total,
+        total,
     }
 }
 
