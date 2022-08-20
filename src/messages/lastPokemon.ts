@@ -15,6 +15,7 @@ interface ActivePokemon {
   name: string,
   id: number,
   shiny: boolean,
+  chance: number,
   stats: {
     name: string,
     value: number

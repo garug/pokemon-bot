@@ -32,7 +32,7 @@ import RankingTrainers from "./models/views/RankingTrainers";
 import { handleRanking } from "./messages/ranking";
 import handleTier from "./messages/tier";
 import { updatePokemon } from "./managers/tier";
-import {sort} from "./lib/utils";
+import { infoSort } from "./lib/utils";
 
 const app = express();
 
@@ -281,9 +281,6 @@ app.get("/call", async (req, res) => {
   const probability = timeDifference / maxInterval;
   const test = probability > Math.random() || key === process.env.SENSATO;
 
-  if (!test && key === process.env.SENSATO)
-    admTries();
-
   if (!test || (await lastPokemonRunAway())) return res.send("ok1");
 
   const possiblePokemon = Array.from(
@@ -292,27 +289,35 @@ app.get("/call", async (req, res) => {
     })
   ).flatMap((set) => set.pokemon);
 
-  const sortedPokemon = sort(possiblePokemon, (p) => p.chance);
+  // TODO com a adição de mais sets e pokemon se repetindo, será necessário agrupar antes de sortear
+  const sortedPokemon = infoSort(possiblePokemon, (p) => p.chance);
 
   const pokemon = await axios.get<any>(
-    `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.number}/`
+    `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.sorted.number}/`
   );
 
   const { name, stats, id } = pokemon.data;
 
-  const shiny = Math.random() < 0.01;
+  const shinyRate = 0.01;
+  const shiny = Math.random() < shinyRate;
+  const chance = (shiny ? shinyRate : 0.9) * sortedPokemon.chance;
 
   updateLastPokemon({
     name,
     stats,
     id,
     shiny,
+    chance,
   });
+
+  const shinyMessage = shiny ? " ✨✨✨" : "";
+  const chanceMessage = " <@here>!!!";
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
     .setTitle("A wild pokemon appeared")
-    .setDescription("Who's that pokemon?" + (shiny ? " ✨✨✨" : ""))
+    .setDescription("Who's that pokemon?" + shinyMessage + chanceMessage)
+    .setFooter({text: "Chance of that pokemon: " + sortedPokemon.chance })
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
