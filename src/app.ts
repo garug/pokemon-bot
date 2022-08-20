@@ -321,6 +321,7 @@ app.get("/call", async (req, res) => {
     .setImage(pokemon.data.sprites.other["official-artwork"].front_default);
 
   useChannel().send({ embeds: [message] });
+  useChannel().send("@here, a rare pokemon!!!")
 
   return res.send("ok2");
 });
