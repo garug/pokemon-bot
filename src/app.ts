@@ -311,7 +311,7 @@ app.get("/call", async (req, res) => {
   });
 
   const shinyMessage = shiny ? " ✨✨✨" : "";
-  const chanceMessage = chance <= 0.0001 ? " @here, a rare pokemon!!!" : "";
+  const chanceMessage = chance <= 10 ? " @here, a rare pokemon!!!" : "";
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
