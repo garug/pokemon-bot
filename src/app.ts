@@ -292,6 +292,8 @@ app.get("/call", async (req, res) => {
   // TODO com a adição de mais sets e pokemon se repetindo, será necessário agrupar antes de sortear
   const sortedPokemon = infoSort(possiblePokemon, (p) => p.chance);
 
+  console.log(sortedPokemon);
+
   const pokemon = await axios.get<any>(
     `https://pokeapi.co/api/v2/pokemon/${sortedPokemon.sorted.number}/`
   );
@@ -300,7 +302,7 @@ app.get("/call", async (req, res) => {
 
   const shinyRate = 0.01;
   const shiny = Math.random() < shinyRate;
-  const chance = (shiny ? shinyRate : 0.9) * sortedPokemon.chance;
+  const chance = (shiny ? shinyRate : 1 - shinyRate) * sortedPokemon.chance;
 
   updateLastPokemon({
     name,
@@ -311,7 +313,7 @@ app.get("/call", async (req, res) => {
   });
 
   const shinyMessage = shiny ? " ✨✨✨" : "";
-  const chanceMessage = " <@here>!!!";
+  const chanceMessage = " @here!!!";
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
