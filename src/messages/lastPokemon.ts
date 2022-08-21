@@ -29,7 +29,7 @@ let lastPokemon: ActiveStatus = {
   prev: undefined
 };
 
-export const RARE_POKEMON_CHANCE = 0.0001;
+export const RARE_POKEMON_CHANCE = 0.0005;
 
 export function useLastPokemon() {
   return lastPokemon;
