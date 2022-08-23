@@ -83,7 +83,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     const modTrainer = tierTrainer.mod_trainer;
     const modPokemon = tierPokemon.mod_pokemon;
 
-    return ((value / 2) * modTrainer * modPokemon * mod) / 100;
+    return ((value) * modTrainer * modPokemon * mod) / 100;
   }
 
 
@@ -92,16 +92,16 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     created_at: new Date(),
     mod,
     attributes: {
-      hp: applyValue(getStats("hp") + pokemon.attributes.hp),
-      attack: applyValue(getStats("attack") + pokemon.attributes.attack),
-      defense: applyValue(getStats("defense") + pokemon.attributes.defense),
+      hp: applyValue(getStats("hp")),
+      attack: applyValue(getStats("attack")),
+      defense: applyValue(getStats("defense")),
       sp_attack: applyValue(
-        getStats("special-attack") + pokemon.attributes.sp_attack
+        getStats("special-attack")
       ),
       sp_defense: applyValue(
-        getStats("special-defense") + pokemon.attributes.sp_defense
+        getStats("special-defense")
       ),
-      speed: applyValue(getStats("speed") + pokemon.attributes.speed),
+      speed: applyValue(getStats("speed")),
     },
   };
 
