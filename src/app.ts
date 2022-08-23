@@ -32,7 +32,7 @@ import RankingTrainers from "./models/views/RankingTrainers";
 import { handleRanking } from "./messages/ranking";
 import handleTier from "./messages/tier";
 import { updatePokemon } from "./managers/tier";
-import { infoSort } from "./lib/utils";
+import { infoSort, sort } from "./lib/utils";
 import InfoPokemon, { PokemonForm } from "./models/InfoPokemon";
 import { v4 } from "uuid";
 
@@ -290,9 +290,8 @@ app.get("/call", async (req, res) => {
 
   const info = await InfoPokemon.findOne({ number: sortedPokemon.sorted.number });
   if (info?.forms && info.forms.length > 1) {
-    const {sorted, chance} = infoSort(info.forms, p => p.chance)
+    const sorted = sort(info.forms, p => p.chance)
     form = sorted;
-    chances.push(chance);
   }
 
   const pokemon = await axios.get<any>(
