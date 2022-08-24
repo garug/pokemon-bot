@@ -92,16 +92,12 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     created_at: new Date(),
     mod,
     attributes: {
-      hp: applyValue(getStats("hp")),
-      attack: applyValue(getStats("attack")),
-      defense: applyValue(getStats("defense")),
-      sp_attack: applyValue(
-        getStats("special-attack")
-      ),
-      sp_defense: applyValue(
-        getStats("special-defense")
-      ),
-      speed: applyValue(getStats("speed")),
+      hp: applyValue(100),
+      attack: applyValue(100),
+      defense: applyValue(100),
+      sp_attack: applyValue(100),
+      sp_defense: applyValue(100),
+      speed: applyValue(100),
     },
   };
 
