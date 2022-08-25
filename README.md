@@ -2,6 +2,7 @@
 This is a bot pokemon for discord.
 
 [Click here if you want to join in your official discord server](https://discord.gg/n6DSgXSqrn)
+
 ![Rotom in bot](assets/rotom.png)
 
 ## Features
