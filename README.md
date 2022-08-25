@@ -28,9 +28,9 @@ yarn dev
 ```
 
 #### Variables
-- `DISCORD_TOKEN`: Provided by discord [[1]](#1)
-- `DISCORD_CLIENT_ID`: Provided by discord [[1]](#1)
-- `DISCORD_CLIENT_SECRET`: Provided by discord [[1]](#1)
+- `DISCORD_TOKEN`: Provided by discord [[1]](#1-you-can-learn-more-about-discord-applications-and-what-is-this-value-in-discord-documentation)
+- `DISCORD_CLIENT_ID`: Provided by discord [[1]](#1-you-can-learn-more-about-discord-applications-and-what-is-this-value-in-discord-documentation)
+- `DISCORD_CLIENT_SECRET`: Provided by discord [[1]](#1-you-can-learn-more-about-discord-applications-and-what-is-this-value-in-discord-documentation)
 - `DB_MONGO_URL`: URL to connect to mongodb instance
 - `CALLABLE_POKEMON`: A key to permit use `/call` endpoint
 - `FRONTEND_URL`: Optional, if you want some commands have link
