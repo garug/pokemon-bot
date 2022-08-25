@@ -1,13 +1,7 @@
 # Next updates
-Próximas atualizações:
-## Indefinido
 - Versão inicial de Batalha
 - Pokemon evolution
 - Improve catching sytem
-
-Não tão breve
-• Sistema de golpes
-• Melhorias no sistema de captura
 
 # Changelog
 - 2021-07-17 - Pokemon trade 
