@@ -1,10 +1,9 @@
 # Next updates
 Próximas atualizações:
-• Indefinido - Versão inicial de Batalha - Quantidade de ataques reduzida
-
-Em breve
-• Ranking de batalha
-• Evolução de pokemon
+## Indefinido
+- Versão inicial de Batalha
+- Pokemon evolution
+- Improve catching sytem
 
 Não tão breve
 • Sistema de golpes
