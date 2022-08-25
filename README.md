@@ -37,7 +37,7 @@ yarn dev
 - `FRONTEND_URL`: Optional, if you want some commands have link
 - `DEVMODE`: Optional, for security development, set this variable with any value
 
-##### [1] You can learn more about discord applications and what is this value in (discord documentation)[https://discord.com/developers/docs/game-sdk/applications]
+##### [1] You can learn more about discord applications and what is this value in [discord documentation](https://discord.com/developers/docs/game-sdk/applications)
 
 ## Contributing
 If you'd like to make your own changes, feel free to submit a pull request, and ensure your PR is made against the 'dev' branch.
