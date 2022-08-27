@@ -319,7 +319,7 @@ app.get("/call", async (req, res) => {
 
   const message = new MessageEmbed()
     .setColor("#f39c12")
-    .setTitle("A wild pokemon appeared")
+    .setTitle("A wild pokemon appeared" + (process.env.DEVMODE ? "**TEST**" : ""))
     .setDescription("Who's that pokemon?" + shinyMessage)
     .setFooter({text: "Chance of that pokemon: " + (chance * 100).toFixed(3) + "%" })
     .setImage(form?.image || pokemon.data.sprites.other["official-artwork"].front_default);
