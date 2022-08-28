@@ -327,7 +327,7 @@ app.get("/call", async (req, res) => {
   useChannel().send({ embeds: [message] });
 
   if (chance <= RARE_POKEMON_CHANCE)
-    useChannel().send("@here a rare pokemon <:eita:875730434087075850>")
+    useChannel().send("@everyone a rare pokemon <:eita:875730434087075850>")
 
   return res.send("ok2");
 });
