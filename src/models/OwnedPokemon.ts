@@ -5,7 +5,7 @@ import { generate } from "randomstring";
 export interface OwnedPokemon extends Document {
   id: string;
   name: string;
-  number: number;
+  id_dex: number;
   form?: string;
   user: string;
   original_user: string;
@@ -53,7 +53,7 @@ export const OwnedPokemonSchema = new Schema({
     unique: true,
     default: () => generate(6),
   },
-  number: { type: Number, required: true },
+  id_dex: { type: Number, required: true },
   name: { type: String, required: true },
   form: String,
   user: { type: String, required: true },

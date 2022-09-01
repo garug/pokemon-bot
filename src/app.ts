@@ -288,14 +288,14 @@ app.get("/call", async (req, res) => {
   const chances = [sortedPokemon.chance];
   let form: PokemonForm | undefined;
 
-  const info = await InfoPokemon.findOne({ number: sortedPokemon.sorted.number });
+  const info = await InfoPokemon.findOne({ number: sortedPokemon.sorted.id_dex });
   if (info?.forms && info.forms.length > 1) {
     const sorted = sort(info.forms, p => p.chance)
     form = sorted;
   }
 
   const pokemon = await axios.get<any>(
-    `https://pokeapi.co/api/v2/pokemon/${form?.id_api || sortedPokemon.sorted.number}/`
+    `https://pokeapi.co/api/v2/pokemon/${form?.id_api || sortedPokemon.sorted.id_dex}/`
   );
 
   const { name, stats, species } = pokemon.data;
@@ -310,7 +310,7 @@ app.get("/call", async (req, res) => {
     name: form?.name || (form?.use_specie_name ? species.name : name),
     form: form?.id,
     stats,
-    id: sortedPokemon.sorted.number,
+    id: sortedPokemon.sorted.id_dex,
     shiny,
     chance,
   });
