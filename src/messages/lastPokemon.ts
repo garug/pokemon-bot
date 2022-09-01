@@ -61,7 +61,7 @@ export default async function handleLastPokemon(m: Message) {
   if (!lastPokemon.pokemon) 
     return;
 
-  const { name, id : number, shiny, form } = lastPokemon.pokemon;
+  const { name, id : id_dex, shiny, form } = lastPokemon.pokemon;
 
   const attributes = lastPokemon.pokemon.stats.reduce((acc: any, s: any) => {
     if (s.stat.name === "special-attack") {
@@ -88,7 +88,7 @@ export default async function handleLastPokemon(m: Message) {
   updateLastPokemon();
 
   const createdPokemon = await OwnedPokemon.create({
-    number,
+    id_dex,
     name,
     form,
     user: m.author.id,
@@ -101,7 +101,7 @@ export default async function handleLastPokemon(m: Message) {
   });
 
   await Prestige.updateOne(
-    { user: m.author.id, pokemon: number },
+    { user: m.author.id, id_dex },
     { $inc: { value: 200 } },
     { upsert: true }
   );
