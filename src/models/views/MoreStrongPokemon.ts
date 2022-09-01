@@ -5,7 +5,7 @@ export interface MoreStrongPokemon extends OwnedPokemon {}
 
 const MoreStrongPokemonSchema = new Schema({
   id: { type: String, required: true, unique: true },
-  number: { type: Number, required: true },
+  id_dex: { type: Number, required: true },
   name: { type: String, required: true },
   user: { type: String, required: true },
   original_user: { type: String, required: true },

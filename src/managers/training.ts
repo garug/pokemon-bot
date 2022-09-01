@@ -53,16 +53,16 @@ export async function createTraining(
 
 export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
   const defaultPokemon = await axios.get<any>(
-    `https://pokeapi.co/api/v2/pokemon/${pokemon.number}/`
+    `https://pokeapi.co/api/v2/pokemon/${pokemon.id_dex}/`
   );
 
   const countTrainers = RankingTrainers.count({
-    pokemon: pokemon.number,
+    pokemon: pokemon.id_dex,
   });
 
   const findMe = RankingTrainers.findOne({
     user: pokemon.user,
-    pokemon: pokemon.number,
+    pokemon: pokemon.id_dex,
   });
 
   const [total, me] = await Promise.all([countTrainers, findMe]);
@@ -107,7 +107,7 @@ export async function applyTraining(pokemon: OwnedPokemon, mod: number) {
     pokemon.save(),
     Training.deleteOne({ pokemon: pokemon.id }),
     await Prestige.updateOne(
-      { user: pokemon.user, pokemon: pokemon.number },
+      { user: pokemon.user, id_dex: pokemon.id_dex },
       { $inc: { value: 100 * tierPokemon.mod_pokemon + 100 * mod } },
       { upsert: true }
     ),

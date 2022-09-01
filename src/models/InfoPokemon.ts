@@ -3,7 +3,7 @@ import { BasicTier } from "../managers/tier";
 import { v4 } from "uuid";
 
 export interface InfoPokemon extends Document {
-  number: number;
+  id_dex: number;
   name: string;
   tiers: BasicTier[];
   forms: PokemonForm[];
@@ -19,7 +19,7 @@ export interface PokemonForm {
 }
 
 export const InfoPokemonSchema = new Schema({
-  number: Number,
+  id_dex: Number,
   name: String,
   forms: [
     {

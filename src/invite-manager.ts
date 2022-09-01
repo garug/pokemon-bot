@@ -33,7 +33,7 @@ export async function acceptInvite(invite: InviteBattle) {
       return new Pokemon({
         id: p.id,
         name: p.name,
-        number: p.number,
+        number: p.id_dex,
         level: 1,
         attributes: p.attributes,
         moves,

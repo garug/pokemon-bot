@@ -7,7 +7,7 @@ export interface Set extends Document {
   last_active: Date;
   pokemon: {
     chance: number;
-    number: number;
+    id_dex: number;
   }[];
 }
 
@@ -20,7 +20,7 @@ const SetSchema = new Schema({
   pokemon: [
     {
       chance: Number,
-      number: Number,
+      id_dex: Number,
     },
   ],
 });

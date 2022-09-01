@@ -211,7 +211,7 @@ export async function updatePokemon() {
 
 export async function findMyTier(pokemon: TypeOwnedPokemon): Promise<Tier> {
   const infoPokemon = await InfoPokemon.findOne({
-    number: pokemon.number,
+    id_dex: pokemon.id_dex,
   });
 
   const valid =
