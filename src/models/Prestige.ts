@@ -4,13 +4,13 @@ import { TierName } from "../managers/tier";
 
 export interface Prestige extends Document {
   user: string;
-  pokemon: number;
+  id_dex: number;
   value: number;
 }
 
 export const PrestigeSchema = new Schema({
   user: String,
-  pokemon: Number,
+  id_dex: Number,
   value: Number,
 });
 
