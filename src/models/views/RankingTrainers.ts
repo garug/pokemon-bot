@@ -2,14 +2,14 @@ import { Document, model, Schema } from "mongoose";
 
 export interface RankingTrainers extends Document {
   user: string;
-  pokemon: number;
+  id_dex: number;
   value: number;
   index: number;
 }
 
 export const RankingTrainersSchema = new Schema({
   user: String,
-  pokemon: Number,
+  id_dex: Number,
   value: Number,
   index: {
     type: Number,
