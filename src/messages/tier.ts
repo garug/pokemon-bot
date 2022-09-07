@@ -26,7 +26,7 @@ export default async function handleTier(m: Message) {
   }
 
   const infoPokemon = await InfoPokemon.findOne({
-    number: pokemon,
+    id_dex: pokemon,
   });
 
   if (!infoPokemon) {
