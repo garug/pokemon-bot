@@ -30,13 +30,13 @@ export async function handleRanking(m: Message) {
   }
 
   const [me, ranking] = await Promise.all([
-    RankingTrainers.findOne({ pokemon, user: m.author.id }),
-    RankingTrainers.find({ pokemon }).limit(3),
+    RankingTrainers.findOne({ id_dex: pokemon, user: m.author.id }),
+    RankingTrainers.find({ id_dex: pokemon }).limit(3),
   ]);
 
   let meString;
   if (me) {
-    meString = `You are ranked ${me.index} - ${me.value}`;
+    meString = `You are ranked ${me.index} - ${me.value.toFixed(1)}`;
   } else {
     meString = "You haven't ranked this pokemon yet.";
   }
