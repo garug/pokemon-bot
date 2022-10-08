@@ -35,13 +35,17 @@ import { updatePokemon } from "./managers/tier";
 import { infoSort, sort } from "./lib/utils";
 import InfoPokemon, { PokemonForm } from "./models/InfoPokemon";
 import { v4 } from "uuid";
+import pokemonRepository from "./input/impl/PokemonRepositoryImpl";
+import {pokemon} from "./managers/dice/blueprints/charmander";
 
 const app = express();
 
 const port = process.env.PORT || 8081;
 
 const server = app
-  .use(cors())
+  .use(cors({
+    exposedHeaders: ["Pagination-Size", "Pagination-Page", "Pagination-Count"]
+  }))
   .use(json())
   .listen(port, () => {
     console.log(`Server online on port ${port}`);
@@ -92,27 +96,29 @@ app.post("/battles", async (req, res) => {
 });
 
 app.get("/pokemon", async (req, res) => {
-  const { limit, user, name, page } = req.query as any;
+  const {limit, user, name, page, shiny} = req.query as any;
 
-  const filters: any = {};
   let usedLimit = parseInt(limit);
-
-  if (user) {
-    filters.user = user;
-  }
-
-  if (name) {
-    filters.name = { $regex: name };
-  }
 
   if (page && !limit) {
     usedLimit = 10;
   }
 
-  const pokemon = await MoreStrongPokemon.find(filters)
-    .skip((page - 1) * usedLimit)
-    .limit(usedLimit);
-  return res.json(pokemon);
+  // TODO sanitizar filtros e paginação antes de passar ao repository
+  const pageResult = await pokemonRepository().find({
+    user,
+    name,
+    shiny: shiny === "true"
+  }, {
+    size: usedLimit,
+    page: Number(page) > 0 ? Number(page) : 1
+  });
+
+  return res.set({
+    'Pagination-Size': usedLimit,
+    'Pagination-Page': page,
+    'Pagination-Count': pageResult.count,
+  }).json(pageResult.content)
 });
 
 app.patch("/pokemon/:id/marks/tradable", async (req, res) => {
