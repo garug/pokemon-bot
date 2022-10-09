@@ -294,7 +294,8 @@ app.get("/call", async (req, res) => {
   const chances = [sortedPokemon.chance];
   let form: PokemonForm | undefined;
 
-  const info = await InfoPokemon.findOne({ number: sortedPokemon.sorted.id_dex });
+  const info = await InfoPokemon.findOne({ id_dex: sortedPokemon.sorted.id_dex });
+
   if (info?.forms && info.forms.length > 1) {
     const sorted = sort(info.forms, p => p.chance)
     form = sorted;
