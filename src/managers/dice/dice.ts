@@ -2,6 +2,7 @@ import { Move, Types } from "./moves";
 import { BlueprintPokemon } from "./BlueprintPokemon";
 import { sort } from "../../lib/utils";
 import { shuffle } from "lodash";
+import { Attributes } from "@models/OwnedPokemon";
 
 export interface GeneratedEnergy {
     type: Types,
@@ -13,6 +14,7 @@ export type Face = Move | GeneratedEnergy | "empty";
 export type DiceMoves = [Face, Face, Face, Face, Face, Face];
 
 export interface Dice {
+    types: [Types, Types?],
     moves: DiceMoves;
 }
 
@@ -26,7 +28,7 @@ export async function generateDice(pokemonName: string): Promise<Dice> {
     let face6: Face = "empty";
 
     if (face3 !== "empty") {
-        const isEnergy = "value" in face3;
+        const isEnergy = isGeneratedEnergy(face3);
 
         if (Math.random() >= 0.5)
             face5 = isEnergy ? generateMove(pokemon) : generateEnergy(pokemon);
@@ -36,14 +38,14 @@ export async function generateDice(pokemonName: string): Promise<Dice> {
     }
 
     return {
+        types: pokemon.types,
         moves: shuffle([face1, face2, face3, face4, face5, face6]) as DiceMoves
     };
 }
 
 function generateEnergy(pokemon: BlueprintPokemon): GeneratedEnergy {
-    // TODO energia pode ser do segundo tipo se existir
     return {
-        type: pokemon.types[0],
+        type: pokemon.types[1] ? sort(pokemon.types)! : pokemon.types[0],
         value: Math.random() > 0.75 ? 2 : 1,
     }
 }
@@ -57,7 +59,7 @@ function generateMove(pokemon: BlueprintPokemon): Move {
     return sortedBlueprintMove.move;
 }
 
-export function isMove(object: any) {
+export function isMove(object: Face) {
     if (typeof object !== 'object')
         return false;
 
@@ -67,7 +69,7 @@ export function isMove(object: any) {
     return nameExists && energyExists;
 }
 
-export function isGeneratedEnergy(object: any) {
+export function isGeneratedEnergy(object: Face) {
     if (typeof object !== 'object')
         return false;
 

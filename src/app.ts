@@ -35,12 +35,15 @@ import { updatePokemon } from "./managers/tier";
 import { infoSort, sort } from "./lib/utils";
 import InfoPokemon, { PokemonForm } from "./models/InfoPokemon";
 import { v4 } from "uuid";
+import { Match } from "./managers/dice-battle/Match";
+import { generateMatch } from "./managers/dice-battle/utils";
+import createSocket from "./managers/dice-battle/socket/socket";
 
 const app = express();
 
 const port = process.env.PORT || 8081;
 
-const server = app
+export const server = app
   .use(cors())
   .use(json())
   .listen(port, () => {
@@ -48,6 +51,7 @@ const server = app
   });
 
 useSocket(server);
+generateMatch().then(createSocket)
 
 new Database().connect();
 
