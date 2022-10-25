@@ -1,7 +1,9 @@
 import { FilterQuery, PipelineStage } from "mongoose";
 
 import OwnedPokemon from "../../models/OwnedPokemon";
+import InfoPokemon from "../../models/InfoPokemon";
 import { Page, Pageable, PokemonFilters, PokemonRepository } from "../PokemonRepository";
+import { availableTiers, fnList } from "../../managers/tier";
 
 export default function useRepository(): PokemonRepository {
   return {
@@ -21,59 +23,111 @@ export default function useRepository(): PokemonRepository {
         count,
         ...pageable
       }
+    },
+
+    async updateTiers(): Promise<any> {
+      return updateTiersImpl();
     }
   }
+}
+
+const prepareToSort: PipelineStage[] = [ {
+  $addFields: {
+    training: {
+      attack: {
+        $sum: '$trainings.attributes.attack'
+      },
+      defense: {
+        $sum: '$trainings.attributes.defense'
+      },
+      hp: {
+        $sum: '$trainings.attributes.hp'
+      },
+      sp_attack: {
+        $sum: '$trainings.attributes.sp_attack'
+      },
+      sp_defense: {
+        $sum: '$trainings.attributes.sp_defense'
+      },
+      speed: {
+        $sum: '$trainings.attributes.speed'
+      }
+    }
+  }
+}, {
+  $project: {
+    training: 1,
+    total: {
+      $add: [
+        '$attributes.attack',
+        '$attributes.defense',
+        '$attributes.hp',
+        '$attributes.sp_attack',
+        '$attributes.sp_defense',
+        '$attributes.speed',
+        '$training.attack',
+        '$training.defense',
+        '$training.hp',
+        '$training.sp_attack',
+        '$training.sp_defense',
+        '$training.speed'
+      ]
+    }
+  }
+} ];
+
+async function updateTiersImpl() {
+  const allPoke = await OwnedPokemon.aggregate([
+    ...prepareToSort,
+    {
+      $group: {
+        _id: "$id_dex",
+        name: {
+          $first: "$name",
+        },
+        arr: {
+          $push: {
+            total: "$total",
+          },
+        },
+      },
+    },
+  ])
+
+  const updates = allPoke.map((p) => {
+    const fn = fnList(
+        p.arr,
+        availableTiers.map((t) => t.value)
+    );
+
+    const tiers = availableTiers
+        .filter((_, index) => fn[index])
+        .map((t, index) => ({
+          order: index,
+          name: t.name,
+          value: fn[index][fn[index].length - 1].total,
+        }));
+
+    return InfoPokemon.updateOne(
+        {
+          id_dex: p._id,
+        },
+        {
+          $set: {
+            tiers,
+          },
+        },
+        { upsert: true }
+    );
+  });
+
+  return Promise.all(updates);
 }
 
 function moreStrong(filters: FilterQuery<any>, pageable: Pageable) {
   const applyFilters: PipelineStage = {
     $match: filters
   }
-
-  const prepareToSort: PipelineStage[] = [ {
-    $addFields: {
-      training: {
-        attack: {
-          $sum: '$trainings.attributes.attack'
-        },
-        defense: {
-          $sum: '$trainings.attributes.defense'
-        },
-        hp: {
-          $sum: '$trainings.attributes.hp'
-        },
-        sp_attack: {
-          $sum: '$trainings.attributes.sp_attack'
-        },
-        sp_defense: {
-          $sum: '$trainings.attributes.sp_defense'
-        },
-        speed: {
-          $sum: '$trainings.attributes.speed'
-        }
-      }
-    }
-  }, {
-    $project: {
-      training: 1,
-      total: {
-        $add: [
-          '$attributes.attack',
-          '$attributes.defense',
-          '$attributes.hp',
-          '$attributes.sp_attack',
-          '$attributes.sp_defense',
-          '$attributes.speed',
-          '$training.attack',
-          '$training.defense',
-          '$training.hp',
-          '$training.sp_attack',
-          '$training.sp_defense',
-          '$training.speed'
-        ]
-      }
-    }
-  } ];
 
   const sortAndPagination: PipelineStage[] = [
     {

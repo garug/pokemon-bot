@@ -4,6 +4,7 @@ import OwnedPokemon, {
 } from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
 import MoreStrongPokemon from "../models/views/MoreStrongPokemon";
+import useRepository from "../input/impl/PokemonRepositoryImpl";
 
 export interface BasicTier {
   order: number;
@@ -160,53 +161,6 @@ export async function updateTrainers() {
   //   const savedOf = saved.filter((s) => s.pokemon === info.number);
   //   console.log(savedOf);
   // });
-}
-
-export async function updatePokemon() {
-  const allPoke = await MoreStrongPokemon.aggregate([
-    {
-      $group: {
-        _id: "$number",
-        name: {
-          $first: "$name",
-        },
-        arr: {
-          $push: {
-            total: "$total",
-          },
-        },
-      },
-    },
-  ]);
-
-  const updates = allPoke.map((p) => {
-    const fn = fnList(
-      p.arr,
-      availableTiers.map((t) => t.value)
-    );
-
-    const tiers = availableTiers
-      .filter((_, index) => fn[index])
-      .map((t, index) => ({
-        order: index,
-        name: t.name,
-        value: fn[index][fn[index].length - 1].total,
-      }));
-
-    return InfoPokemon.updateOne(
-      {
-        number: p._id,
-      },
-      {
-        $set: {
-          tiers,
-        },
-      },
-      { upsert: true }
-    );
-  });
-
-  await Promise.all(updates);
 }
 
 export async function findMyTier(pokemon: TypeOwnedPokemon): Promise<Tier> {

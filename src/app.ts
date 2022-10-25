@@ -31,7 +31,6 @@ import { handleTraining } from "./messages/training";
 import RankingTrainers from "./models/views/RankingTrainers";
 import { handleRanking } from "./messages/ranking";
 import handleTier from "./messages/tier";
-import { updatePokemon } from "./managers/tier";
 import { infoSort, sort } from "./lib/utils";
 import InfoPokemon, { PokemonForm } from "./models/InfoPokemon";
 import { v4 } from "uuid";
@@ -68,7 +67,7 @@ app.get("/info", async (req, res) => {
 })
 
 app.get("/update", async(req, res) => {
-  await updatePokemon();
+  pokemonRepository().updateTiers().then(() => console.log(new Date(), "updated"))
   return res.send("updated");
 })
 
