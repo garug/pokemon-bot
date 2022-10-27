@@ -22,7 +22,6 @@ import handleTrade, { acceptTrade, refuseTrade } from "./messages/trade";
 import useSocket from "./socket";
 import express, { json, RequestHandler } from "express";
 import cors from "cors";
-import MoreStrongPokemon from "./models/views/MoreStrongPokemon";
 import { currentInvites, acceptInvite } from "./invite-manager";
 import SetCollection from "./Set";
 import { approvalStatus, createOffer } from "./managers/offers";
@@ -71,16 +70,16 @@ app.get("/update", async(req, res) => {
   return res.send("updated");
 })
 
-app.get("/users", async (req, res) => {
-  const pokemon = await MoreStrongPokemon.find();
-  return res.json({ pokemon });
-});
+// app.get("/users", async (req, res) => {
+//   const pokemon = await MoreStrongPokemon.find();
+//   return res.json({ pokemon });
+// });
 
-app.get("/users/:id", async (req, res) => {
-  const { id } = req.params;
-  const pokemon = await MoreStrongPokemon.find({ user: id });
-  return res.json({ pokemon });
-});
+// app.get("/users/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const pokemon = await MoreStrongPokemon.find({ user: id });
+//   return res.json({ pokemon });
+// });
 
 app.post("/battles", async (req, res) => {
   const id = req.body.id;
@@ -132,12 +131,12 @@ app.patch("/pokemon/:id/marks/tradable", async (req, res) => {
   return res.send(pokemon.marks.tradable);
 });
 
-app.get("/pokemon/tradable", async (req, res) => {
-  // TODO retirar pokemon do próprio usuário da request
-  const pokemon = await MoreStrongPokemon.find({ "marks.tradable": true });
-
-  return res.json(pokemon);
-});
+// app.get("/pokemon/tradable", async (req, res) => {
+//   // TODO retirar pokemon do próprio usuário da request
+//   const pokemon = await MoreStrongPokemon.find({ "marks.tradable": true });
+//
+//   return res.json(pokemon);
+// });
 
 app.post("/offers", async (req, res) => {
   // TODO não permitir criar offers iguais
@@ -170,42 +169,42 @@ app.post("/offers/:id/approval-status", async (req, res) => {
   return res.sendStatus(201);
 });
 
-app.get("/offers", async (req, res) => {
-  const authorization = req.headers.authorization;
-
-  if (!authorization) return res.sendStatus(403);
-
-  const { data: user } = await fetchUser(authorization);
-
-  const offers = await Offer.find({
-    $or: [{ owner: user.id }, { offeror: user.id }],
-  });
-  const allPokemon = offers
-    .flatMap((offer) => [...offer.retrieving, ...offer.giving])
-    .map((e) => e.pokemon);
-
-  const usedPokemon = await MoreStrongPokemon.find({ id: { $in: allPokemon } });
-
-  const returned = offers.map((offer) => {
-    const map = (arr: any[]) => {
-      return arr.map((p) => usedPokemon.find((p2) => p2.id === p.pokemon));
-    };
-
-    const obj = {
-      ...offer.toObject(),
-      retrievedPokemon: map(offer.retrieving)[0],
-      sentPokemon: map(offer.giving)[0],
-    } as any;
-
-    delete obj.retrieving;
-    delete obj.giving;
-    delete obj._id;
-
-    return obj;
-  });
-
-  return res.json(returned);
-});
+// app.get("/offers", async (req, res) => {
+//   const authorization = req.headers.authorization;
+//
+//   if (!authorization) return res.sendStatus(403);
+//
+//   const { data: user } = await fetchUser(authorization);
+//
+//   const offers = await Offer.find({
+//     $or: [{ owner: user.id }, { offeror: user.id }],
+//   });
+//   const allPokemon = offers
+//     .flatMap((offer) => [...offer.retrieving, ...offer.giving])
+//     .map((e) => e.pokemon);
+//
+//   const usedPokemon = await MoreStrongPokemon.find({ id: { $in: allPokemon } });
+//
+//   const returned = offers.map((offer) => {
+//     const map = (arr: any[]) => {
+//       return arr.map((p) => usedPokemon.find((p2) => p2.id === p.pokemon));
+//     };
+//
+//     const obj = {
+//       ...offer.toObject(),
+//       retrievedPokemon: map(offer.retrieving)[0],
+//       sentPokemon: map(offer.giving)[0],
+//     } as any;
+//
+//     delete obj.retrieving;
+//     delete obj.giving;
+//     delete obj._id;
+//
+//     return obj;
+//   });
+//
+//   return res.json(returned);
+// });
 
 app.post("/login", async (req, res) => {
   const { code } = req.body;

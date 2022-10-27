@@ -3,7 +3,6 @@ import OwnedPokemon, {
   OwnedPokemon as TypeOwnedPokemon,
 } from "../models/OwnedPokemon";
 import Prestige from "../models/Prestige";
-import MoreStrongPokemon from "../models/views/MoreStrongPokemon";
 import useRepository from "../input/impl/PokemonRepositoryImpl";
 
 export interface BasicTier {

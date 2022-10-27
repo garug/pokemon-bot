@@ -19,4 +19,5 @@ export interface Page<T> {
 export interface PokemonRepository {
   find(filters: PokemonFilters,  pageable: Pageable): Promise<Page<any>>;
   updateTiers(): Promise<any>;
+  uniquePokemon(user?: string): Promise<number>;
 }
