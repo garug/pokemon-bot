@@ -97,13 +97,59 @@ const prepareToSort: PipelineStage[] = [ {
 
 async function updateTiersImpl() {
   const allPoke = await OwnedPokemon.aggregate([
-    ...prepareToSort,
+    {
+      $addFields: {
+        training: {
+          attack: {
+            $sum: '$trainings.attributes.attack'
+          },
+          defense: {
+            $sum: '$trainings.attributes.defense'
+          },
+          hp: {
+            $sum: '$trainings.attributes.hp'
+          },
+          sp_attack: {
+            $sum: '$trainings.attributes.sp_attack'
+          },
+          sp_defense: {
+            $sum: '$trainings.attributes.sp_defense'
+          },
+          speed: {
+            $sum: '$trainings.attributes.speed'
+          }
+        }
+      }
+    }, {
+      $project: {
+        id_dex: 1,
+        training: 1,
+        total: {
+          $add: [
+            '$attributes.attack',
+            '$attributes.defense',
+            '$attributes.hp',
+            '$attributes.sp_attack',
+            '$attributes.sp_defense',
+            '$attributes.speed',
+            '$training.attack',
+            '$training.defense',
+            '$training.hp',
+            '$training.sp_attack',
+            '$training.sp_defense',
+            '$training.speed'
+          ]
+        }
+      }
+    },
+    {
+      $sort: {
+        total: -1
+      }
+    },
     {
       $group: {
         _id: "$id_dex",
-        name: {
-          $first: "$name",
-        },
         arr: {
           $push: {
             total: "$total",
